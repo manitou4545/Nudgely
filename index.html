@@ -1,0 +1,88 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nudgely – Get paid on time</title>
+<style>
+:root{--bg:#fff;--cd:#f0f9ff;--tx:#0f2a3d;--mu:#5b7384;--pr:#38bdf8;--pt:#0c2a3f;--bd:#cfe8f7;--bad:#c0392b;--ok:#1d7f4e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1620;--cd:#112331;--tx:#e8f3fb;--mu:#9bb5c7;--pr:#38bdf8;--pt:#0c2a3f;--bd:#1f3a4d;--bad:#e57368;--ok:#6fcf97;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0b1620;--cd:#112331;--tx:#e8f3fb;--mu:#9bb5c7;--pr:#38bdf8;--pt:#0c2a3f;--bd:#1f3a4d;--bad:#e57368;--ok:#6fcf97;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bd);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.logo{font-size:18px;font-weight:700;cursor:pointer}nav{display:flex;gap:4px}header button{padding:6px 10px;font-size:14px;white-space:nowrap}
+main{max-width:640px;margin:0 auto;padding:16px}section{display:none}section.on{display:block}
+h1{font-size:28px;line-height:1.2;font-weight:700;margin:24px 0 10px}h2{font-size:18px;font-weight:600;margin:22px 0 8px}.mu{color:var(--mu)}
+button{font:inherit;font-size:15px;font-weight:500;border:1px solid var(--bd);background:var(--bg);color:var(--tx);padding:8px 14px;border-radius:8px;cursor:pointer}
+button.p{background:var(--pr);color:var(--pt);border-color:var(--pr)}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px;margin:8px 0}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kpi .card{margin:0;padding:10px}.kpi b{display:block;font-size:16px;font-weight:600}.kpi small{color:var(--mu)}
+label{display:block;font-weight:500;margin:10px 0 4px;font-size:14px}input,select,textarea{width:100%;font:inherit;padding:9px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+textarea{min-height:110px}.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.row>div{min-width:0}
+.badge{font-size:13px;font-weight:500;white-space:nowrap}.pending{color:var(--mu)}.overdue{color:var(--bad)}.paid{color:var(--ok)}
+.inv{cursor:pointer}.err{color:var(--bad);min-height:1.4em}.steps{display:grid;gap:6px}footer{text-align:center;padding:24px 16px;color:var(--mu);font-size:14px}footer a{color:var(--mu);margin:0 6px;cursor:pointer}
+.price{font-size:32px;font-weight:700}ul{padding-left:20px}
+</style></head><body>
+<header><span class="logo" onclick="go('home')">Nudgely</span><nav id="nav"></nav></header>
+<main>
+<section id="home"><h1>Get paid on time, without chasing clients.</h1>
+<p class="mu">Add an unpaid invoice. Nudgely sends polite email reminders until you mark it paid.</p>
+<button class="p" onclick="go('auth')">Start free trial</button> <button onclick="go('pricing')">See pricing</button>
+<div class="steps"><h2>How it works</h2>
+<div class="card"><b>1. Add your invoice</b><br><span class="mu">Client, amount, due date. Made in PayPal, Canva or Word, it does not matter.</span></div>
+<div class="card"><b>2. Nudgely reminds your client</b><br><span class="mu">3 days before, on the due date, then 7 and 15 days after. Tone gets firmer each time.</span></div>
+<div class="card"><b>3. You get paid</b><br><span class="mu">Replies go straight to your inbox. Mark the invoice paid and reminders stop.</span></div></div></section>
+<section id="pricing"><h1>One simple plan</h1><div class="card"><div class="price">$19<small class="mu"> / month</small></div>
+<p class="mu">14-day free trial. Cancel anytime.</p><ul><li>Unlimited invoices and clients</li><li>Automatic email reminders</li><li>Editable message templates</li><li>Dashboard of pending, overdue and recovered money</li></ul><button class="p" onclick="go('auth')">Start free trial</button></div></section>
+<section id="auth"><h1 id="at">Log in</h1><div class="card"><div id="nm" style="display:none"><label>Full name</label><input id="fn" autocomplete="name"></div>
+<label>Email</label><input id="em" type="email" autocomplete="email"><label>Password</label><input id="pw" type="password" autocomplete="current-password">
+<p class="err" id="ae"></p><button class="p" id="ab" onclick="auth()">Log in</button> <button id="as" onclick="mode()">Create an account</button> <button onclick="reset()">Forgot password</button></div></section>
+<section id="dash"><div class="row"><h2>Dashboard</h2><button class="p" onclick="go('add')">Add invoice</button></div><div class="kpi" id="kpi"></div>
+<div class="row" style="margin-top:12px"><span class="mu">Invoices</span><select id="flt" style="width:auto" onchange="drawList()"><option value="">All</option><option>pending</option><option>overdue</option><option>paid</option></select></div><div id="list"></div></section>
+<section id="add"><h2>Add invoice</h2><div class="card"><label>Client name</label><input id="cn"><label>Client email</label><input id="ce" type="email">
+<label>Invoice number</label><input id="in"><label>Amount</label><input id="am" type="number" step="0.01" min="0"><label>Currency</label><select id="cu"><option>USD</option><option>GBP</option><option>EUR</option></select>
+<label>Due date</label><input id="dd" type="date"><p class="err" id="ie"></p><button class="p" onclick="addInv()">Save invoice</button> <button onclick="go('dash')">Cancel</button></div></section>
+<section id="detail"><button onclick="go('dash')">Back</button><div id="dt"></div></section>
+<section id="settings"><h2>Settings</h2><div class="card"><label>Full name</label><input id="sn"><label>Timezone</label><input id="stz" placeholder="America/New_York"><button class="p" style="margin-top:10px" onclick="saveProf()">Save profile</button></div>
+<h2>Reminder schedule</h2><div id="rules"></div></section>
+<section id="legal"><h2>Terms of Service</h2><p class="mu">Nudgely sends email reminders on your behalf for invoices you add. You are responsible for the accuracy of your data and for lawful use. Replace this draft with your final terms.</p>
+<h2>Privacy Policy</h2><p class="mu">We store your account, clients and invoices to run the service, send reminders through our email provider, and never sell your data. Replace this draft with your final policy.</p>
+<h2>Refund Policy</h2><p class="mu">Cancel anytime. Contact us within 14 days of a charge for a refund. Replace this draft with your final policy.</p>
+<h2>Contact</h2><p class="mu">support@yourdomain.com</p></section>
+</main>
+<footer><a onclick="go('legal')">Terms</a><a onclick="go('legal')">Privacy</a><a onclick="go('legal')">Refunds</a><a onclick="go('legal')">Contact</a><div id="demo"></div></footer>
+<script src="config.js" onerror="void 0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const C=window.NUDGELY_CONFIG||{},demo=!C.url||C.url.startsWith("YOUR"),sb=demo?null:supabase.createClient(C.url,C.key),$=i=>document.getElementById(i),today=new Date().toISOString().slice(0,10);
+const dd=n=>new Date(Date.now()+n*864e5).toISOString().slice(0,10);
+let U=null,INV=[],RUL=[],signup=false,cur=null;
+let DI=[{id:1,invoice_number:"INV-021",amount:1200,currency:"USD",due_date:dd(-9),status:"pending",reminders_paused:false,clients:{name:"Brightside Studio",email:"ap@brightside.co"}},{id:2,invoice_number:"INV-022",amount:640,currency:"GBP",due_date:dd(4),status:"pending",reminders_paused:false,clients:{name:"Oak & Pine Ltd",email:"hello@oakpine.uk"}},{id:3,invoice_number:"INV-019",amount:2300,currency:"USD",due_date:dd(-30),status:"paid",paid_at:new Date().toISOString(),reminders_paused:false,clients:{name:"Fable Media",email:"pay@fable.media"}}];
+let DR=[[-3,"Friendly reminder: invoice {{invoice_number}} is due on {{due_date}}","Hi {{client_name}},\n\nJust a quick heads-up that invoice {{invoice_number}} for {{amount}} {{currency}} is due on {{due_date}}.\n\nThanks a lot!\n{{user_name}}"],[0,"Invoice {{invoice_number}} is due today","Hi {{client_name}},\n\nA polite reminder that invoice {{invoice_number}} is due today.\n\n{{user_name}}"],[7,"Follow-up: invoice {{invoice_number}} is overdue","Hi {{client_name}},\n\nInvoice {{invoice_number}} was due on {{due_date}} and is still unpaid. Could you tell me when to expect it?\n\n{{user_name}}"],[15,"Final reminder: invoice {{invoice_number}}","Hi {{client_name}},\n\nThis is a final reminder: invoice {{invoice_number}} is still unpaid.\n\n{{user_name}}"]].map((r,i)=>({id:i+1,offset_days:r[0],subject_template:r[1],body_template:r[2],enabled:true}));
+const money=(a,c)=>new Intl.NumberFormat("en-US",{style:"currency",currency:c}).format(a),st=i=>i.status==="paid"?"paid":i.due_date<today?"overdue":"pending",esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function nav(){$("nav").innerHTML=U?'<button onclick="go(\'dash\')">Dashboard</button><button onclick="go(\'settings\')">Settings</button><button onclick="out()">Log out</button>':'<button onclick="go(\'pricing\')">Pricing</button><button class="p" onclick="go(\'auth\')">Log in</button>'}
+function go(v,x){document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id===v));nav();scrollTo(0,0);if(v==="dash")loadDash();if(v==="detail")showDetail(x);if(v==="settings")loadSet();if(location.hash!=="#"+v&&v!=="detail")history.replaceState(null,"","#"+v)}
+function mode(){signup=!signup;$("at").textContent=signup?"Create your account":"Log in";$("ab").textContent=signup?"Start free trial":"Log in";$("as").textContent=signup?"I have an account":"Create an account";$("nm").style.display=signup?"block":"none"}
+async function auth(){$("ae").textContent="";if(demo){U={id:"demo"};return go("dash")}
+const e=$("em").value.trim(),p=$("pw").value;const r=signup?await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$("fn").value}}}):await sb.auth.signInWithPassword({email:e,password:p});
+if(r.error)return $("ae").textContent=r.error.message;if(signup&&!r.data.session)return $("ae").textContent="Check your inbox to confirm your email, then log in.";U=r.data.user;go("dash")}
+async function reset(){const e=$("em").value.trim();if(!e)return $("ae").textContent="Enter your email first.";if(!demo)await sb.auth.resetPasswordForEmail(e);$("ae").textContent="If this email exists, a reset link is on its way."}
+async function out(){if(!demo)await sb.auth.signOut();U=null;go("home")}
+async function loadDash(){if(demo)INV=DI;else{const r=await sb.from("invoices").select("*,clients(name,email)").order("due_date");INV=r.data||[]}
+const sum=f=>{const m={};INV.filter(f).forEach(i=>m[i.currency]=(m[i.currency]||0)+Number(i.amount));return Object.keys(m).map(c=>money(m[c],c)).join(" + ")||"$0.00"},mo=today.slice(0,7);
+$("kpi").innerHTML=[["Pending",sum(i=>st(i)==="pending")],["Overdue",sum(i=>st(i)==="overdue")],["Recovered this month",sum(i=>i.status==="paid"&&(i.paid_at||"").slice(0,7)===mo)]].map(k=>`<div class="card"><small>${k[0]}</small><b>${k[1]}</b></div>`).join("");drawList()}
+function drawList(){const f=$("flt").value,L=INV.filter(i=>!f||st(i)===f);$("list").innerHTML=L.length?L.map(i=>`<div class="card inv" onclick="go('detail','${i.id}')"><div class="row"><div><b>${esc(i.clients.name)}</b><br><span class="mu">${esc(i.invoice_number)} · due ${i.due_date}</span></div><div style="text-align:right"><b>${money(i.amount,i.currency)}</b><br><span class="badge ${st(i)}">${st(i)}</span></div></div></div>`).join(""):'<div class="card mu">No invoices yet. Add your first one to start reminders.</div>'}
+async function addInv(){const n=$("cn").value.trim(),e=$("ce").value.trim(),no=$("in").value.trim(),a=$("am").value,d=$("dd").value;if(!n||!e||!no||!a||!d)return $("ie").textContent="Fill in every field.";
+if(demo){DI.push({id:Date.now(),invoice_number:no,amount:a,currency:$("cu").value,due_date:d,status:"pending",reminders_paused:false,clients:{name:n,email:e}})}else{let c=(await sb.from("clients").select("id").eq("email",e).maybeSingle()).data;if(!c)c=(await sb.from("clients").insert({user_id:U.id,name:n,email:e}).select().single()).data;
+const r=await sb.from("invoices").insert({user_id:U.id,client_id:c.id,invoice_number:no,amount:a,currency:$("cu").value,due_date:d});if(r.error)return $("ie").textContent=r.error.message}
+["cn","ce","in","am","dd"].forEach(i=>$(i).value="");$("ie").textContent="";go("dash")}
+async function showDetail(id){cur=INV.find(i=>String(i.id)===String(id));if(!cur)return go("dash");let R=[];if(!demo)R=(await sb.from("reminders_sent").select("sent_at,status,reminder_rules(offset_days)").eq("invoice_id",cur.id).order("sent_at")).data||[];
+const i=cur;$("dt").innerHTML=`<h2>${esc(i.clients.name)}</h2><div class="card"><div class="row"><b>${money(i.amount,i.currency)}</b><span class="badge ${st(i)}">${st(i)}</span></div><p class="mu">${esc(i.invoice_number)} · due ${i.due_date}<br>${esc(i.clients.email)}</p>
+${i.status!=="paid"?`<button class="p" onclick="paid()">Mark as paid</button> <button onclick="pause()">${i.reminders_paused?"Resume":"Pause"} reminders</button>`:""}</div><h2>Reminders sent</h2>${R.length?R.map(r=>`<div class="card">${new Date(r.sent_at).toLocaleDateString()} · ${r.status} · step ${r.reminder_rules?r.reminder_rules.offset_days:"?"} days</div>`).join(""):'<div class="card mu">No reminders sent yet.</div>'}`}
+async function paid(){cur.status="paid";cur.paid_at=new Date().toISOString();if(!demo)await sb.from("invoices").update({status:"paid",paid_at:cur.paid_at}).eq("id",cur.id);go("dash")}
+async function pause(){cur.reminders_paused=!cur.reminders_paused;if(!demo)await sb.from("invoices").update({reminders_paused:cur.reminders_paused}).eq("id",cur.id);showDetail(cur.id)}
+async function loadSet(){let p={};if(!demo){p=(await sb.from("profiles").select("*").maybeSingle()).data||{};RUL=(await sb.from("reminder_rules").select("*").order("offset_days")).data||[]}else RUL=DR;$("sn").value=p.full_name||"";$("stz").value=p.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone;
+$("rules").innerHTML=RUL.map((r,k)=>`<div class="card"><div class="row"><b>${r.offset_days<0?-r.offset_days+" days before due date":r.offset_days===0?"On the due date":r.offset_days+" days after due date"}</b><label style="margin:0"><input type="checkbox" style="width:auto" id="re${k}" ${r.enabled?"checked":""}> On</label></div><label>Subject</label><input id="rs${k}" value="${esc(r.subject_template)}"><label>Message</label><textarea id="rb${k}">${esc(r.body_template)}</textarea><p class="mu">Variables: {{client_name}} {{invoice_number}} {{amount}} {{currency}} {{due_date}} {{user_name}}</p><button onclick="saveRule(${k})">Save step</button></div>`).join("")}
+async function saveRule(k){const r=RUL[k];r.enabled=$("re"+k).checked;r.subject_template=$("rs"+k).value;r.body_template=$("rb"+k).value;if(!demo)await sb.from("reminder_rules").update({enabled:r.enabled,subject_template:r.subject_template,body_template:r.body_template}).eq("id",r.id);alert("Saved")}
+async function saveProf(){if(!demo)await sb.from("profiles").update({full_name:$("sn").value,timezone:$("stz").value}).eq("id",U.id);alert("Saved")}
+(async()=>{if(demo)$("demo").textContent="Demo mode: sample data, nothing is saved.";else{const s=(await sb.auth.getSession()).data.session;if(s)U=s.user}
+const h=location.hash.slice(1);go(U&&["dash","add","settings"].includes(h)?h:U?"dash":["pricing","auth","legal"].includes(h)?h:"home")})();
+</script></body></html>
