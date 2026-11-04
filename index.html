@@ -103,7 +103,7 @@ ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 <section id="pay" class="hide">
   <button type="button" class="back" id="bk">← Back to invoices</button>
   <h1>Upgrade to Pro</h1>
-  <p class="sub" style="font-size:16px"><b id="pp"></b> a month: unlimited invoices and automatic reminders.</p>
+  <p class="sub" style="font-size:16px"><b id="pp"></b> a month: unlimited invoices<span id="pt"></span>.</p>
   <div class="pms" id="pm"></div>
   <div id="pd"></div>
 </section>
@@ -125,7 +125,7 @@ ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 <script>
 const SB_URL="https://eycgkbfjvtcejfrnwlhp.supabase.co";
 const SB_KEY="sb_publishable_1IbzYcFo5D2-b9eNzgMHfA_-BmDx7tZ";
-const ADMIN="gerardnomo8@gmail.com";
+const ADMIN="gerardnomo8@gmail.com",AUTO=false;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const days=n=>n+" day"+(n===1?"":"s");
@@ -161,7 +161,7 @@ async function plan(){
  pro=!!(r.data&&r.data.plan==="pro"&&Date.parse(r.data.expires_at)>Date.now());
  const u=(await db.auth.getUser()).data.user;
  adm=!!u&&u.email===ADMIN;uid=u&&u.id;
- if(pro){const x=await db.from("user_settings").select("auto_reminders").maybeSingle();ars=x.data?x.data.auto_reminders:true}
+ if(pro&&AUTO){const x=await db.from("user_settings").select("auto_reminders").maybeSingle();ars=x.data?x.data.auto_reminders:true}
 }
 async function loadAdm(){
  const r=await db.rpc("admin_pending"),l=r.data||[];
@@ -183,7 +183,7 @@ async function load(){
 }
 function render(){
  const open=inv.filter(i=>i.status!=="paid"),n=new Date();
- $("#upg").classList.toggle("hide",pro);$("#adm").classList.toggle("hide",!adm);$("#arw").classList.toggle("hide",!pro);$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
+ $("#upg").classList.toggle("hide",pro);$("#adm").classList.toggle("hide",!adm);$("#arw").classList.toggle("hide",!(pro&&AUTO));$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
  let pe=false;try{pe=localStorage.getItem("ndg_pend")==="1";if(pro&&pe)localStorage.removeItem("ndg_pend")}catch(x){}
  $("#pend").classList.toggle("hide",!(pe&&!pro));
  $("#tot").textContent=sum(open);
@@ -239,8 +239,9 @@ $("#add").onclick=async()=>{
  const name=$("#f-name").value.trim(),email=$("#f-mail").value.trim().toLowerCase(),num=$("#f-num").value.trim(),amt=parseFloat($("#f-amt").value),due=$("#f-due").value,er=$("#aerr");
  if(!name||!email||!(amt>0)||!due){er.textContent="Enter a client name, an email, an amount and a due date.";return}
  er.textContent="";$("#add").disabled=true;
- let{data:c,error}=await db.from("clients").select("id").eq("email",email).maybeSingle();
+ let{data:c,error}=await db.from("clients").select("id,name").eq("email",email).maybeSingle();
  let cid=c?.id;
+ if(!error&&c&&c.name!==name){const u=await db.from("clients").update({name}).eq("id",cid).select("id");if(u.error)error=u.error;else if(!u.data.length)error={message:"Could not update the client name."}}
  if(!error&&!cid){const r=await db.from("clients").insert({name,email}).select("id").single();error=r.error;cid=r.data?.id}
  if(!error){const r=await db.from("invoices").insert({client_id:cid,number:num||null,amount:amt,currency:$("#f-cur").value,due_date:due});error=r.error}
  $("#add").disabled=false;
@@ -264,7 +265,7 @@ let pm=null;
 const usdt=()=>(P.usdt||[]).filter(x=>x.address);
 function refForm(){return `<label>Transaction ID<input id="ref" autocomplete="off"></label><p id="perr" role="alert"></p><button class="pri" type="button" id="paid">I have paid</button>`}
 function renderPay(){
- $("#pp").textContent="$"+PRICE;
+ $("#pp").textContent="$"+PRICE;$("#pt").textContent=AUTO?" and automatic reminders":"";
  const m=[];
  if(usdt().length)m.push(["usdt","USDT (TRC20)"]);
  m.push(["bank","Bank transfer"]);
