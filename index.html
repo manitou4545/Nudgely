@@ -14,26 +14,28 @@ header{display:flex;justify-content:space-between;align-items:center;border-bott
 button{font:inherit;cursor:pointer;border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:6px;padding:10px 14px;min-height:44px;font-weight:600}
 button.pri{background:var(--green);border-color:var(--green);color:#fff;text-transform:uppercase;letter-spacing:.02em}
 button:disabled{opacity:.6}
-button:focus-visible,input:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--green);outline-offset:2px}
 h1{font-size:clamp(32px,9vw,44px);line-height:1.15;font-weight:300;letter-spacing:-.01em;margin:0 0 8px}
 h2{font-size:28px;font-weight:300;margin:32px 0 12px}
 .free{font-size:20px;margin:0 0 18px}
 .sub{font-size:14px;color:var(--muted);display:block}
 form,.add{display:grid;gap:12px}
 label{display:grid;gap:4px;font-size:17px}
-input{font:inherit;color:var(--ink);background:var(--field);border:0;border-radius:6px;padding:14px;min-height:48px;width:100%}
-#err,#aerr{color:var(--bc);font-size:14px;margin:0;min-height:20px}
+input,select{font:inherit;color:var(--ink);background:var(--field);border:0;border-radius:6px;padding:14px;min-height:48px;width:100%}
+#err,#aerr,#perr{color:var(--bc);font-size:14px;margin:0;min-height:20px}
 .link{background:none;border:0;color:var(--green);text-decoration:underline;padding:6px 0;min-height:0;text-align:left}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat{background:var(--field);border-radius:6px;padding:14px}.stat b{display:block;font-size:26px}.stat span{font-size:14px;color:var(--muted)}
+.stat{background:var(--field);border-radius:6px;padding:14px}.stat b{display:block;font-size:24px;line-height:1.2}.stat span{font-size:14px;color:var(--muted)}
 ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .row{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:6px;padding:14px}
 .row.bad{border-left-color:var(--bc)}.row.warn{border-left-color:var(--wc)}.row.paid{border-left-color:var(--okc);opacity:.75}
 .top,.mid{display:flex;justify-content:space-between;align-items:center;gap:10px}.mid{margin-top:8px}
 .tag{font-size:14px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--line)}
 .tag.bad{background:var(--bb);color:var(--bc)}.tag.warn{background:var(--wb);color:var(--wc)}.tag.paid{background:var(--okb);color:var(--okc)}
-.acts{display:flex;gap:8px;margin-top:12px}.acts button{flex:1}
+.acts,.row2{display:flex;gap:8px;margin-top:12px}.acts button,.row2 button{flex:1}
 .empty{text-align:center;color:var(--muted);padding:24px}
+.ban{background:var(--wb);color:var(--wc);border-radius:6px;padding:12px;margin:0 0 14px;font-size:15px}
+.back{margin-bottom:16px}
 #shade{position:fixed;inset:0;background:rgba(10,16,30,.55);display:none}#shade.on{display:block}
 #sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:#fff;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .22s ease}
 #sheet.on{transform:none}
@@ -44,6 +46,8 @@ ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .addr{word-break:break-all;background:var(--field);padding:12px;border-radius:6px;font-family:ui-monospace,Menlo,monospace;font-size:14px;margin:6px 0 10px}
 #pd{display:grid;gap:10px}#pd p{margin:0}
 .hide{display:none}
+#pr{display:none}
+@media print{body>*:not(#pr){display:none!important}#pr{display:block;padding:12px}#pr table{width:100%;border-collapse:collapse;font-size:12px}#pr td,#pr th{border:1px solid #999;padding:4px;text-align:left}}
 </style>
 </head>
 <body>
@@ -63,34 +67,54 @@ ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 </section>
 
 <section id="app" class="hide">
+  <div class="ban hide" id="pend">Payment request received. We are checking it and will activate Pro within 24 hours.</div>
   <h1>Your invoices</h1>
   <div class="stats">
     <div class="stat"><b id="tot">$0</b><span>Outstanding</span></div>
     <div class="stat"><b id="late">0</b><span>Overdue invoices</span></div>
+    <div class="stat" style="grid-column:1/-1"><b id="col">$0</b><span>Collected this month</span></div>
   </div>
   <ul id="list"></ul>
+  <div class="row2"><button type="button" id="csv">Export CSV</button><button type="button" id="pdf">Export PDF</button></div>
   <h2>Add an invoice</h2>
   <div class="add">
     <label>Client name<input id="f-name" autocomplete="off"></label>
     <label>Client email<input id="f-mail" type="email" autocomplete="off"></label>
     <label>Invoice number (optional)<input id="f-num" autocomplete="off"></label>
-    <label>Amount (USD)<input id="f-amt" type="number" inputmode="decimal" min="1"></label>
+    <label>Amount<input id="f-amt" type="number" inputmode="decimal" min="1"></label>
+    <label>Currency<select id="f-cur"><option>USD</option><option>EUR</option><option>GBP</option></select></label>
     <label>Due date<input id="f-due" type="date"></label>
     <p id="aerr" role="alert"></p>
     <button class="pri" id="add" type="button">Add invoice</button>
   </div>
-  <h2>Upgrade to Pro</h2>
-  <p class="sub" style="font-size:16px">$12 a month: unlimited invoices and automatic reminders.</p>
+  <button class="pri" id="upg" type="button" style="width:100%;margin-top:24px">Upgrade to Pro →</button>
+  <div id="arw" class="hide"><h2>Automatic reminders</h2>
+    <p class="sub" style="font-size:16px">Nudgely emails your client 1, 7 and 14 days after the due date. Replies come to you.</p>
+    <button type="button" id="ar"></button></div>
+  <section id="ref"><h2>Invite a freelancer</h2>
+    <p class="sub" style="font-size:16px">Get 1 free month of Pro for each friend who subscribes.</p>
+    <div class="addr" id="rl"></div>
+    <button type="button" id="rc">Copy my invite link</button>
+    <p class="sub" id="rs" style="margin-top:8px"></p>
+  </section>
+  <section id="adm" class="hide"><h2>Admin</h2><ul id="al"></ul></section>
+</section>
+
+<section id="pay" class="hide">
+  <button type="button" class="back" id="bk">← Back to invoices</button>
+  <h1>Upgrade to Pro</h1>
+  <p class="sub" style="font-size:16px"><b id="pp"></b> a month: unlimited invoices and automatic reminders.</p>
   <div class="pms" id="pm"></div>
   <div id="pd"></div>
 </section>
 <p id="fatal" class="hide" role="alert"></p>
 </div>
 
+<div id="pr"></div>
 <div id="shade"></div>
 <div id="sheet" role="dialog" aria-label="Reminder preview">
   <b id="to"></b>
-  <div class="seg"><button type="button" data-tone="friendly" aria-pressed="true">Friendly</button><button type="button" data-tone="firm" aria-pressed="false">Firm</button></div>
+  <div class="seg"><button type="button" data-tone="friendly" aria-pressed="true">Friendly</button><button type="button" data-tone="firm" aria-pressed="false">Firm</button><button type="button" data-tone="final" aria-pressed="false">Final</button></div>
   <div id="msg"></div>
   <div class="acts"><button type="button" id="cancel">Cancel</button><button type="button" id="copy">Copy</button><button type="button" class="pri" id="mail">Send email</button></div>
 </div>
@@ -101,11 +125,15 @@ ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 <script>
 const SB_URL="https://eycgkbfjvtcejfrnwlhp.supabase.co";
 const SB_KEY="sb_publishable_1IbzYcFo5D2-b9eNzgMHfA_-BmDx7tZ";
+const ADMIN="gerardnomo8@gmail.com";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const days=n=>n+" day"+(n===1?"":"s");
 const money=(v,c)=>{try{return new Intl.NumberFormat("en-US",{style:"currency",currency:c||"USD"}).format(v)}catch(e){return v+" "+c}};
-let db,inv=[],up=true,tone="friendly",cur=null;
+const sum=l=>{const t={};l.forEach(i=>{const c=i.currency||"USD";t[c]=(t[c]||0)+Number(i.amount)});const k=Object.keys(t);return k.length?k.map(c=>money(t[c],c)).join(" · "):money(0,"USD")};
+const q0=new URLSearchParams(location.search).get("ref");
+if(q0)try{localStorage.setItem("ndg_ref",q0.slice(0,12))}catch(x){}
+let rlink="",db,inv=[],up=true,tone="friendly",cur=null,pro=false,adm=false,ars=true,uid=null;
 function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",2600)}
 function today(){const d=new Date();return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5}
 const dueIn=i=>Math.round(Date.parse(i.due_date)/864e5-today());
@@ -118,24 +146,48 @@ function status(i){
 }
 function nudged(i){
  if(!i.last_reminded_at)return"Not nudged yet";
- const n=Math.floor((Date.now()-Date.parse(i.last_reminded_at))/864e5);
- return n<=0?"Nudged today":"Nudged "+days(n)+" ago";
+ const n=Math.floor((Date.now()-Date.parse(i.last_reminded_at))/864e5),c=i.reminder_count>1?" ("+i.reminder_count+" reminders)":"";
+ return(n<=0?"Nudged today":"Nudged "+days(n)+" ago")+c;
 }
-function view(name){["auth","app"].forEach(k=>$("#"+k).classList.toggle("hide",k!==name));$("#out").classList.toggle("hide",name!=="app")}
+function view(name){["auth","app","pay"].forEach(k=>$("#"+k).classList.toggle("hide",k!==name));$("#out").classList.toggle("hide",name==="auth")}
 function setMode(){
  $("#at").textContent=up?"Create your account":"Sign in";
  $("#go").textContent=up?"Create account":"Sign in";
  $("#sw").textContent=up?"I already have an account":"Create a new account";
  $("#err").textContent="";
 }
+async function plan(){
+ const r=await db.from("user_plans").select("plan,expires_at").maybeSingle();
+ pro=!!(r.data&&r.data.plan==="pro"&&Date.parse(r.data.expires_at)>Date.now());
+ const u=(await db.auth.getUser()).data.user;
+ adm=!!u&&u.email===ADMIN;uid=u&&u.id;
+ if(pro){const x=await db.from("user_settings").select("auto_reminders").maybeSingle();ars=x.data?x.data.auto_reminders:true}
+}
+async function loadAdm(){
+ const r=await db.rpc("admin_pending"),l=r.data||[];
+ $("#al").innerHTML=l.length?l.map(p=>`<li class="row"><b>${esc(p.email)}</b><span class="sub">${esc(p.method)} · ${esc(p.reference||"no ID")}</span><div class="acts"><button class="pri" data-e="${esc(p.email)}">Activate 1 month</button></div></li>`).join(""):`<li class="empty">No pending payments.</li>`;
+}
+async function loadRef(){
+ let c=null;try{c=localStorage.getItem("ndg_ref")}catch(x){}
+ if(c){await db.rpc("claim_referral",{p_code:c});try{localStorage.removeItem("ndg_ref")}catch(x){}}
+ const r=await db.rpc("my_referrals");if(!r.data)return;
+ rlink=location.origin+location.pathname+"?ref="+r.data.code;
+ $("#rl").textContent=rlink;
+ $("#rs").textContent=r.data.count+" friend"+(r.data.count==1?"":"s")+" joined · "+r.data.rewarded+" free month"+(r.data.rewarded==1?"":"s")+" earned";
+}
+$("#rc").onclick=async()=>{try{await navigator.clipboard.writeText(rlink);toast("Invite link copied")}catch(x){toast("Could not copy. Select the text instead.")}};
 async function load(){
  const{data,error}=await db.from("invoices").select("*, clients(name,email)").order("due_date");
  if(error){toast(error.message);return}
- inv=data;render();
+ inv=data;await plan();render();if(adm)loadAdm();loadRef();
 }
 function render(){
- const open=inv.filter(i=>i.status!=="paid");
- $("#tot").textContent=money(open.reduce((s,i)=>s+Number(i.amount),0),"USD");
+ const open=inv.filter(i=>i.status!=="paid"),n=new Date();
+ $("#upg").classList.toggle("hide",pro);$("#adm").classList.toggle("hide",!adm);$("#arw").classList.toggle("hide",!pro);$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
+ let pe=false;try{pe=localStorage.getItem("ndg_pend")==="1";if(pro&&pe)localStorage.removeItem("ndg_pend")}catch(x){}
+ $("#pend").classList.toggle("hide",!(pe&&!pro));
+ $("#tot").textContent=sum(open);
+ $("#col").textContent=sum(inv.filter(i=>{const d=i.paid_at&&new Date(i.paid_at);return i.status==="paid"&&d&&d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}));
  $("#late").textContent=open.filter(i=>dueIn(i)<0).length;
  const rows=[...inv].sort((a,b)=>(a.status==="paid")-(b.status==="paid")||a.due_date.localeCompare(b.due_date));
  $("#list").innerHTML=rows.length?rows.map(i=>{
@@ -145,6 +197,7 @@ function render(){
 }
 function draft(){
  const i=cur,f=(i.clients?.name||"there").split(" ")[0],m=money(i.amount,i.currency),d=dueIn(i),n=i.number?"invoice "+i.number:"your invoice";
+ if(tone==="final")return `Hello ${f},\n\nThis is a final notice: ${n} for ${m} ${d<0?"is now "+days(-d)+" overdue":"is due "+(d===0?"today":"in "+days(d))}. Unless I receive payment or hear from you within 3 days, I will have to consider other options.\n\nRegards,`;
  if(tone==="friendly"){
   const w=d<0?"was due "+days(-d)+" ago":d===0?"is due today":"is due in "+days(d);
   return `Hi ${f},\n\nA quick reminder that ${n} for ${m} ${w}. If it’s already on its way, thank you, and please ignore this note.\n\nThanks,`;
@@ -160,14 +213,14 @@ function build(){
 const openSheet=()=>{$("#shade").classList.add("on");$("#sheet").classList.add("on")};
 const closeSheet=()=>{$("#shade").classList.remove("on");$("#sheet").classList.remove("on")};
 async function markNudged(){
- const{error}=await db.from("invoices").update({last_reminded_at:new Date().toISOString()}).eq("id",cur.id);
+ const{error}=await db.from("invoices").update({last_reminded_at:new Date().toISOString(),reminder_count:(cur.reminder_count||0)+1}).eq("id",cur.id);
  if(error)toast(error.message);else await load();
 }
 $("#list").addEventListener("click",async e=>{
  const b=e.target.closest("button");if(!b)return;
  const i=inv.find(x=>x.id===b.dataset.id);if(!i)return;
  if(b.dataset.a==="paid"){
-  const{error}=await db.from("invoices").update({status:"paid"}).eq("id",i.id);
+  const{error}=await db.from("invoices").update({status:"paid",paid_at:new Date().toISOString()}).eq("id",i.id);
   if(error)toast(error.message);else{await load();toast("Marked as paid")}
  }else{cur=i;build();openSheet()}
 });
@@ -189,7 +242,7 @@ $("#add").onclick=async()=>{
  let{data:c,error}=await db.from("clients").select("id").eq("email",email).maybeSingle();
  let cid=c?.id;
  if(!error&&!cid){const r=await db.from("clients").insert({name,email}).select("id").single();error=r.error;cid=r.data?.id}
- if(!error){const r=await db.from("invoices").insert({client_id:cid,number:num||null,amount:amt,due_date:due});error=r.error}
+ if(!error){const r=await db.from("invoices").insert({client_id:cid,number:num||null,amount:amt,currency:$("#f-cur").value,due_date:due});error=r.error}
  $("#add").disabled=false;
  if(error){er.textContent=error.message;return}
  ["#f-name","#f-mail","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");
@@ -206,11 +259,12 @@ $("#af").addEventListener("submit",async e=>{
  if(r.error)$("#err").textContent=r.error.message;
  else if(up&&!r.data.session)$("#err").textContent="Check your email to confirm your account, then sign in.";
 });
-const P=window.PAYMENTS||{},PRICE=P.price||12;
+const P=window.PAYMENTS||{},PRICE=25;
 let pm=null;
 const usdt=()=>(P.usdt||[]).filter(x=>x.address);
 function refForm(){return `<label>Transaction ID<input id="ref" autocomplete="off"></label><p id="perr" role="alert"></p><button class="pri" type="button" id="paid">I have paid</button>`}
 function renderPay(){
+ $("#pp").textContent="$"+PRICE;
  const m=[];
  if(usdt().length)m.push(["usdt","USDT (TRC20)"]);
  m.push(["bank","Bank transfer"]);
@@ -225,7 +279,7 @@ function renderPay(){
 }
 $("#pm").addEventListener("click",e=>{const b=e.target.closest("button");if(b){pm=b.dataset.m;renderPay()}});
 $("#pd").addEventListener("click",async e=>{
- const b=e.target.closest("button");if(!b)return;
+ const b=e.target.closest("button");if(!b||b.id==="done")return;
  if(b.dataset.copy){try{await navigator.clipboard.writeText(b.dataset.copy);toast("Address copied")}catch(x){toast("Could not copy. Select the text instead.")}return}
  let ref=null;
  if(b.id==="paid"){ref=$("#ref").value.trim();if(!ref){$("#perr").textContent="Paste your transaction ID first.";return}}
@@ -235,13 +289,39 @@ $("#pd").addEventListener("click",async e=>{
  const{error}=await db.from("payment_requests").insert({method:pm,reference:ref,email:user?user.email:null});
  b.disabled=false;
  if(error){toast(error.message);return}
- $("#pd").innerHTML=`<p><b>Thank you!</b> ${pm==="bank"?"We will email you our bank details shortly.":"We will check your payment and activate Pro."}</p>`;
+ if(pm!=="bank")try{localStorage.setItem("ndg_pend","1")}catch(x){}
+ $("#pd").innerHTML=`<p><b>Thank you!</b> ${pm==="bank"?"We will email you our bank details shortly.":"We will check your payment and activate Pro within 24 hours."}</p><button class="pri" type="button" id="done">Back to my invoices</button>`;
 });
+$("#ar").onclick=async()=>{
+ ars=!ars;$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
+ const r=await db.from("user_settings").upsert({user_id:uid,auto_reminders:ars});
+ if(r.error){ars=!ars;toast(r.error.message);render()}
+};
+$("#upg").onclick=()=>{view("pay");renderPay();scrollTo(0,0)};
+$("#bk").onclick=()=>{view("app");render()};
+document.addEventListener("click",e=>{if(e.target.id==="done"){view("app");load()}});
+$("#al").addEventListener("click",async e=>{
+ const b=e.target.closest("button");if(!b)return;b.disabled=true;
+ const r=await db.rpc("admin_activate",{p_email:b.dataset.e,p_months:1});
+ toast(r.error?r.error.message:r.data);loadAdm();
+});
+$("#csv").onclick=()=>{
+ const q=v=>{v=String(v??"");if(/^[=+\-@]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'};
+ const r=[["Client","Email","Invoice","Amount","Currency","Due date","Status","Paid on"]].concat(inv.map(i=>[i.clients?.name,i.clients?.email,i.number,i.amount,i.currency||"USD",i.due_date,i.status,i.paid_at?i.paid_at.slice(0,10):""]));
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob(["\ufeff"+r.map(x=>x.map(q).join(",")).join("\n")],{type:"text/csv"}));
+ a.download="nudgely-invoices.csv";a.click();
+};
+$("#pdf").onclick=()=>{
+ $("#pr").innerHTML="<h2>Nudgely invoices</h2><table><tr><th>Client</th><th>Invoice</th><th>Amount</th><th>Due</th><th>Status</th></tr>"+inv.map(i=>`<tr><td>${esc(i.clients?.name)}</td><td>${esc(i.number)}</td><td>${money(i.amount,i.currency)}</td><td>${esc(i.due_date)}</td><td>${esc(i.status)}</td></tr>`).join("")+"</table>";
+ toast("Choose “Save as PDF” in the print window");
+ setTimeout(()=>window.print(),600);
+};
 $("#out").onclick=()=>db.auth.signOut();
 if(!window.supabase){const f=$("#fatal");f.textContent="Could not load the app. Check your connection and reload.";f.classList.remove("hide")}
 else{
  db=supabase.createClient(SB_URL,SB_KEY);
- db.auth.onAuthStateChange((_e,s)=>{if(s&&s.user){view("app");load();renderPay()}else{view("auth");setMode()}});
+ db.auth.onAuthStateChange((_e,s)=>{if(s&&s.user){if($("#pay").classList.contains("hide"))view("app");load()}else{view("auth");setMode()}});
 }
 </script>
 </body>
