@@ -70,6 +70,7 @@ button.pri{min-height:48px;letter-spacing:0}
 .price{background:#1F5E17;color:#fff;border-radius:16px;padding:20px;margin-bottom:16px;font-size:14px}.price .amt b{font-size:36px;font-weight:800}.price .amt span{font-size:16px}
 .lead{font-size:14px;font-weight:700}
 .pms button{min-height:56px;font-size:14px;border-width:2px}
+.st{display:flex;gap:12px;align-items:center;font-size:14px}.st i{width:28px;height:28px;border-radius:99px;background:#E3E8DF;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;flex:none}.st.g i{background:#2F8F23;color:#fff}
 </style>
 </head>
 <body>
@@ -114,11 +115,20 @@ button.pri{min-height:48px;letter-spacing:0}
   <div id="arw" class="hide"><h2>Automatic reminders</h2>
     <p class="sub" style="font-size:16px">Nudgely emails your client 1, 7 and 14 days after the due date. Replies come to you.</p>
     <button type="button" id="ar"></button></div>
-  <section id="ref"><h2>Invite a freelancer</h2>
-    <p class="sub" style="font-size:16px">Get 1 free month of Pro for each friend who subscribes.</p>
-    <div class="addr" id="rl"></div>
-    <button type="button" id="rc">Copy my invite link</button>
-    <p class="sub" id="rs" style="margin-top:8px"></p>
+  <section id="ref">
+    <div class="price" style="margin-top:28px"><div>Referral</div><div style="font-size:22px;font-weight:800;line-height:1.25;margin:4px 0 8px">Invite a freelancer, get a free month</div><div>For every friend who subscribes to Pro, you get 1 month free.</div></div>
+    <div class="add">
+      <div class="sub">Your invite link</div>
+      <div style="display:flex;gap:8px;align-items:center"><div class="addr" id="rl" style="flex:1;margin:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;word-break:normal"></div><button type="button" class="pri" id="rc" style="min-width:80px">Copy</button></div>
+      <button type="button" class="pri" id="wa" style="background:#1F7A3E;border-color:#1F7A3E">Share on WhatsApp</button>
+      <button type="button" id="em2">Share by email</button>
+    </div>
+    <div class="stats" style="margin:10px 0"><div class="stat"><b id="rj">0</b><span>Friends joined</span></div><div class="stat"><b id="rf">0</b><span>Free months earned</span></div></div>
+    <div class="add"><b>How it works</b>
+      <div class="st"><i>1</i>Share your link with a freelancer</div>
+      <div class="st"><i>2</i>They create their account</div>
+      <div class="st g"><i>3</i>They subscribe: you get 1 free month</div>
+    </div>
   </section>
   <section id="adm" class="hide"><h2>Admin</h2><ul id="al"></ul></section>
 </section>
@@ -197,9 +207,12 @@ async function loadRef(){
  const r=await db.rpc("my_referrals");if(!r.data)return;
  rlink=location.origin+location.pathname+"?ref="+r.data.code;
  $("#rl").textContent=rlink;
- $("#rs").textContent=r.data.count+" friend"+(r.data.count==1?"":"s")+" joined · "+r.data.rewarded+" free month"+(r.data.rewarded==1?"":"s")+" earned";
+ $("#rj").textContent=r.data.count;$("#rf").textContent=r.data.rewarded;
 }
 $("#rc").onclick=async()=>{try{await navigator.clipboard.writeText(rlink);toast("Invite link copied")}catch(x){toast("Could not copy. Select the text instead.")}};
+const shareTxt=()=>"I use Nudgely to chase late invoices without awkward emails. Try it free: "+rlink;
+$("#wa").onclick=()=>{if(rlink)window.open("https://wa.me/?text="+encodeURIComponent(shareTxt()),"_blank")};
+$("#em2").onclick=()=>{if(rlink)location.href="mailto:?subject="+encodeURIComponent("Try Nudgely")+"&body="+encodeURIComponent(shareTxt())};
 async function load(){
  const{data,error}=await db.from("invoices").select("*, clients(name,email)").order("due_date");
  if(error){toast(error.message);return}
