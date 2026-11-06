@@ -354,9 +354,9 @@ $("#pd").addEventListener("click",async e=>{
  else if(b.id!=="bankreq")return;
  b.disabled=true;
  const{data:{user}}=await db.auth.getUser();
- const{error}=await db.from("payment_requests").insert({method:pm,reference:ref,email:user?user.email:null});
+ const{error}=await db.from("payment_requests").insert({method:pm,reference:ref,email:user?user.email:null,user_id:user?user.id:null});
  b.disabled=false;
- if(error){toast(error.message);return}
+ if(error){const pe=$("#perr");if(pe)pe.textContent="Error: "+error.message;else toast(error.message);return}
  if(pm!=="bank")try{localStorage.setItem("ndg_pend","1")}catch(x){}
  $("#pd").innerHTML=`<p><b>Thank you!</b> ${pm==="bank"?"We will email you our bank details shortly.":"We will check your payment and activate Pro within 24 hours."}</p><button class="pri" type="button" id="done">Back to my invoices</button>`;
 });
