@@ -170,7 +170,7 @@ details{border-top:1px solid var(--line);padding-top:4px}summary{font-weight:600
   <p class="sub" style="margin-top:12px">After your payment, tap “I have paid”. Your account is activated within 24 hours.</p>
 </section>
 <p id="fatal" class="hide" role="alert"></p>
-<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:gerardnomo8@gmail.com">Contact</a></footer>
+<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:gerardnomo8@gmail.com">Contact</a> · v5</footer>
 </div>
 
 <div id="pr"></div>
@@ -352,7 +352,7 @@ $("#pd").addEventListener("click",async e=>{
  let ref=null;
  if(b.id==="paid"){ref=$("#ref").value.trim();if(!ref){$("#perr").textContent="Paste your transaction ID first.";return}}
  else if(b.id!=="bankreq")return;
- b.disabled=true;
+ b.disabled=true;const pe0=$("#perr");if(pe0)pe0.textContent="Sending…";
  const{data:{user}}=await db.auth.getUser();
  const{error}=await db.from("payment_requests").insert({method:pm,reference:ref,email:user?user.email:null,user_id:user?user.id:null});
  b.disabled=false;
@@ -398,6 +398,7 @@ $("#rf2").addEventListener("submit",async e=>{
  if(r.error){$("#rerr").textContent=r.error.message;return}
  recov=false;toast("Password updated");view("app");load();
 });
+window.addEventListener("unhandledrejection",e=>{const m=(e.reason&&e.reason.message)||String(e.reason);const pe=$("#perr");if(pe)pe.textContent="Error: "+m;toast("Error: "+m)});
 $("#out").onclick=()=>db.auth.signOut();
 if(!window.supabase){const f=$("#fatal");f.textContent="Could not load the app. Check your connection and reload.";f.classList.remove("hide")}
 else{
