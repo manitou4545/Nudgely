@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#E58A1F">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nudgely – Get paid without chasing</title>
 <style>
@@ -77,6 +80,8 @@ form,.add{grid-template-columns:minmax(0,1fr)}.add>*,#rl{min-width:0}.wrap{overf
 details{border-top:1px solid var(--line);padding-top:4px}summary{font-weight:600;cursor:pointer;min-height:44px;display:flex;align-items:center}details p{margin:0 0 8px}
 #rerr{color:var(--bc);font-size:14px;margin:0;min-height:20px}
 .ft{margin-top:32px;text-align:center;font-size:14px;color:var(--muted)}.ft a,.sub a{color:var(--muted)}
+textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-radius:8px;padding:12px;width:100%;resize:vertical}
+#sheet .acts{flex-wrap:wrap}#sheet .acts button{min-width:46%}
 </style>
 </head>
 <body>
@@ -85,6 +90,7 @@ details{border-top:1px solid var(--line);padding-top:4px}summary{font-weight:600
 
 <section id="auth" class="hide">
   <div class="hero"><h1>Get paid without chasing</h1><p>Track your unpaid invoices and send a polite reminder to late clients in one tap. Built for freelancers.</p></div>
+  <div class="ban hide" id="inv">You were invited! Create your free account below.</div>
   <h1 id="at">Create your account</h1>
   <h3 class="free">No credit card required</h3>
   <form id="af">
@@ -125,19 +131,37 @@ details{border-top:1px solid var(--line);padding-top:4px}summary{font-weight:600
     <div class="stat"><b id="tot">$0</b><span>Outstanding</span></div>
     <div class="stat"><b id="late">0</b><span>Overdue invoices</span></div>
     <div class="stat" style="grid-column:1/-1"><b id="col">$0</b><span>Collected this month</span></div>
+    <div class="stat" style="grid-column:1/-1"><b id="cnu">$0</b><span>Collected this month after a nudge</span></div>
   </div>
+  <div class="card" id="age"><b>Overdue by age</b>
+    <div class="top"><span>1–30 days</span><b id="a1"></b></div>
+    <div class="top"><span>31–60 days</span><b id="a2"></b></div>
+    <div class="top"><span>61+ days</span><b id="a3"></b></div></div>
   <ul id="list"></ul>
   <div class="row2"><button type="button" id="csv">Export CSV</button><button type="button" id="pdf">Export PDF</button></div>
   <h2>Add an invoice</h2>
   <div class="add">
     <label>Client name<input id="f-name" autocomplete="off"></label>
     <label>Client email<input id="f-mail" type="email" autocomplete="off"></label>
+    <label>Client WhatsApp (optional, with country code)<input id="f-tel" type="tel" inputmode="tel" placeholder="+33612345678" autocomplete="off"></label>
     <label>Invoice number (optional)<input id="f-num" autocomplete="off"></label>
     <label>Amount<input id="f-amt" type="number" inputmode="decimal" min="1"></label>
     <label>Currency<select id="f-cur"><option>USD</option><option>EUR</option><option>GBP</option></select></label>
     <label>Due date<input id="f-due" type="date"></label>
     <p id="aerr" role="alert"></p>
     <button class="pri" id="add" type="button">Add invoice</button>
+  </div>
+  <h2>Payment instructions</h2>
+  <div class="add">
+    <p class="sub" style="font-size:15px;margin:0">Saved once and added to every reminder you send. Example: PayPal address, IBAN or a payment link.</p>
+    <label>How should clients pay you?<textarea id="pt2" maxlength="400" rows="4" placeholder="PayPal: you@example.com"></textarea></label>
+    <button type="button" id="ps">Save instructions</button>
+  </div>
+  <h2>Notifications</h2>
+  <div class="add">
+    <p class="sub" style="font-size:15px;margin:0">Get a notification on this phone each morning when invoices are due or overdue.</p>
+    <p class="sub" id="pnote" style="margin:0"></p>
+    <button type="button" class="pri" id="pn">Enable notifications</button>
   </div>
   <button class="pri" id="upg" type="button" style="width:100%;margin-top:24px">Upgrade to Pro →</button>
   <div id="arw" class="hide"><h2>Automatic reminders</h2>
@@ -170,7 +194,7 @@ details{border-top:1px solid var(--line);padding-top:4px}summary{font-weight:600
   <p class="sub" style="margin-top:12px">After your payment, tap “I have paid”. Your account is activated within 24 hours.</p>
 </section>
 <p id="fatal" class="hide" role="alert"></p>
-<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:gerardnomo8@gmail.com">Contact</a> · v6</footer>
+<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:gerardnomo8@gmail.com">Contact</a> · v9</footer>
 </div>
 
 <div id="pr"></div>
@@ -179,7 +203,7 @@ details{border-top:1px solid var(--line);padding-top:4px}summary{font-weight:600
   <b id="to"></b>
   <div class="seg"><button type="button" data-tone="friendly" aria-pressed="true">Friendly</button><button type="button" data-tone="firm" aria-pressed="false">Firm</button><button type="button" data-tone="final" aria-pressed="false">Final</button></div>
   <div id="msg"></div>
-  <div class="acts"><button type="button" id="cancel">Cancel</button><button type="button" id="copy">Copy</button><button type="button" class="pri" id="mail">Send email</button></div>
+  <div class="acts"><button type="button" id="cancel">Cancel</button><button type="button" id="copy">Copy</button><button type="button" id="wam">WhatsApp</button><button type="button" class="pri" id="mail">Send email</button></div>
 </div>
 <div id="toast" role="status"></div>
 
@@ -196,7 +220,7 @@ const money=(v,c)=>{try{return new Intl.NumberFormat("en-US",{style:"currency",c
 const sum=l=>{const t={};l.forEach(i=>{const c=i.currency||"USD";t[c]=(t[c]||0)+Number(i.amount)});const k=Object.keys(t);return k.length?k.map(c=>money(t[c],c)).join(" · "):money(0,"USD")};
 const q0=new URLSearchParams(location.search).get("ref");
 if(q0)try{localStorage.setItem("ndg_ref",q0.slice(0,12))}catch(x){}
-let recov=false,rlink="",db,inv=[],up=true,tone="friendly",cur=null,pro=false,adm=false,ars=true,uid=null;
+let payTxt="",recov=false,rlink="",db,inv=[],up=true,tone="friendly",cur=null,pro=false,adm=false,ars=true,uid=null;
 function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",2600)}
 function today(){const d=new Date();return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5}
 const dueIn=i=>Math.round(Date.parse(i.due_date)/864e5-today());
@@ -243,9 +267,9 @@ const shareTxt=()=>"I use Nudgely to chase late invoices without awkward emails.
 $("#wa").onclick=()=>{if(rlink)window.open("https://wa.me/?text="+encodeURIComponent(shareTxt()),"_blank")};
 $("#em2").onclick=()=>{if(rlink)location.href="mailto:?subject="+encodeURIComponent("Try Nudgely")+"&body="+encodeURIComponent(shareTxt())};
 async function load(){
- const{data,error}=await db.from("invoices").select("*, clients(name,email)").order("due_date");
+ const{data,error}=await db.from("invoices").select("*, clients(name,email,phone)").order("due_date");
  if(error){toast(error.message);return}
- inv=data;await plan();render();if(adm)loadAdm();loadRef();
+ inv=data;await plan();pushState();{const pi=await db.from("payment_instructions").select("body").maybeSingle();payTxt=pi.data?pi.data.body:"";$("#pt2").value=payTxt}render();if(adm)loadAdm();loadRef();
 }
 function render(){
  const open=inv.filter(i=>i.status!=="paid"),n=new Date();
@@ -256,6 +280,9 @@ function render(){
  $("#tot").textContent=sum(open);
  $("#col").textContent=sum(inv.filter(i=>{const d=i.paid_at&&new Date(i.paid_at);return i.status==="paid"&&d&&d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}));
  $("#late").textContent=open.filter(i=>dueIn(i)<0).length;
+ const od=open.filter(i=>dueIn(i)<0),ag=(a,b)=>sum(od.filter(i=>{const d=-dueIn(i);return d>=a&&d<=b}));
+ $("#age").classList.toggle("hide",!od.length);$("#a1").textContent=ag(1,30);$("#a2").textContent=ag(31,60);$("#a3").textContent=ag(61,99999);
+ $("#cnu").textContent=sum(inv.filter(i=>{const d=i.paid_at&&new Date(i.paid_at);return i.status==="paid"&&d&&i.reminder_count>0&&d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}));
  const rows=[...inv].sort((a,b)=>(a.status==="paid")-(b.status==="paid")||a.due_date.localeCompare(b.due_date));
  $("#list").innerHTML=rows.length?rows.map(i=>{
   const[c,t]=status(i),paid=i.status==="paid";
@@ -263,6 +290,10 @@ function render(){
  }).join(""):`<li class="empty">No invoices yet. Add one below and Nudgely will track it.</li>`;
 }
 function draft(){
+ const t=draft0();if(!payTxt)return t;
+ const k=t.lastIndexOf("\n\n");return t.slice(0,k)+"\n\nHow to pay:\n"+payTxt+t.slice(k);
+}
+function draft0(){
  const i=cur,f=(i.clients?.name||"there").split(" ")[0],m=money(i.amount,i.currency),d=dueIn(i),n=i.number?"invoice "+i.number:"your invoice";
  if(tone==="final")return `Hello ${f},\n\nThis is a final notice: ${n} for ${m} ${d<0?"is now "+days(-d)+" overdue":"is due "+(d===0?"today":"in "+days(d))}. Unless I receive payment or hear from you within 3 days, I will have to consider other options.\n\nRegards,`;
  if(tone==="friendly"){
@@ -297,23 +328,34 @@ $("#copy").onclick=async()=>{
  try{await navigator.clipboard.writeText($("#msg").textContent);toast("Message copied")}catch(e){toast("Could not copy. Select the text instead.")}
  await markNudged();closeSheet();
 };
+$("#wam").onclick=async()=>{
+ const p=String(cur.clients?.phone||"").replace(/[^\d]/g,"").replace(/^00/,"");
+ window.open("https://wa.me/"+p+"?text="+encodeURIComponent($("#msg").textContent),"_blank");
+ await markNudged();closeSheet();
+};
+$("#ps").onclick=async()=>{
+ const body=$("#pt2").value.trim().slice(0,400);
+ const r=await db.from("payment_instructions").upsert({user_id:uid,body});
+ if(r.error){toast(r.error.message);return}
+ payTxt=body;toast("Instructions saved");
+};
 $("#mail").onclick=async()=>{
  const sub="Reminder: "+(cur.number?"invoice "+cur.number:"your invoice");
  const href="mailto:"+encodeURIComponent(cur.clients?.email||"")+"?subject="+encodeURIComponent(sub)+"&body="+encodeURIComponent($("#msg").textContent);
  await markNudged();closeSheet();location.href=href;
 };
 $("#add").onclick=async()=>{
- const name=$("#f-name").value.trim(),email=$("#f-mail").value.trim().toLowerCase(),num=$("#f-num").value.trim(),amt=parseFloat($("#f-amt").value),due=$("#f-due").value,er=$("#aerr");
+ const name=$("#f-name").value.trim(),email=$("#f-mail").value.trim().toLowerCase(),num=$("#f-num").value.trim(),amt=parseFloat($("#f-amt").value),due=$("#f-due").value,tel=$("#f-tel").value.trim(),er=$("#aerr");
  if(!name||!email||!(amt>0)||!due){er.textContent="Enter a client name, an email, an amount and a due date.";return}
  er.textContent="";$("#add").disabled=true;
- let{data:c,error}=await db.from("clients").select("id,name").eq("email",email).maybeSingle();
+ let{data:c,error}=await db.from("clients").select("id,name,phone").eq("email",email).maybeSingle();
  let cid=c?.id;
- if(!error&&c&&c.name!==name){const u=await db.from("clients").update({name}).eq("id",cid).select("id");if(u.error)error=u.error;else if(!u.data.length)error={message:"Could not update the client name."}}
- if(!error&&!cid){const r=await db.from("clients").insert({name,email}).select("id").single();error=r.error;cid=r.data?.id}
+ if(!error&&c&&(c.name!==name||(tel&&c.phone!==tel))){const u=await db.from("clients").update(tel?{name,phone:tel}:{name}).eq("id",cid).select("id");if(u.error)error=u.error;else if(!u.data.length)error={message:"Could not update the client name."}}
+ if(!error&&!cid){const r=await db.from("clients").insert({name,email,phone:tel||null}).select("id").single();error=r.error;cid=r.data?.id}
  if(!error){const r=await db.from("invoices").insert({client_id:cid,number:num||null,amount:amt,currency:$("#f-cur").value,due_date:due});error=r.error}
  $("#add").disabled=false;
  if(error){er.textContent=error.message;return}
- ["#f-name","#f-mail","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");
+ ["#f-name","#f-mail","#f-tel","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");
  await load();toast("Invoice added");
 };
 $("#sw").onclick=()=>{up=!up;setMode()};
@@ -399,11 +441,30 @@ $("#rf2").addEventListener("submit",async e=>{
  recov=false;toast("Password updated");view("app");load();
 });
 window.addEventListener("unhandledrejection",e=>{const m=(e.reason&&e.reason.message)||String(e.reason);const pe=$("#perr");if(pe)pe.textContent="Error: "+m;toast("Error: "+m)});
+
+const VAPID="BFZKuIAIV34Elvu3qM9KHMafphjwdXboYZAuzwiBnBACjsoriQWtErA5oMiwMFDZrtUr0laoQ8nVG1h7uWFHc3Q";
+const b64=x=>{const r=atob((x+"=".repeat((4-x.length%4)%4)).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(r,c=>c.charCodeAt(0))};
+async function pushState(){
+ if(!("serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window)){$("#pn").classList.add("hide");$("#pnote").textContent="Notifications are not supported in this browser. On iPhone, add Nudgely to your Home Screen first, then open it from there.";return}
+ const reg=await navigator.serviceWorker.getRegistration(),sub=reg&&await reg.pushManager.getSubscription();
+ $("#pn").textContent=sub?"Turn off notifications":"Enable notifications";
+}
+$("#pn").onclick=async()=>{
+ const reg=await navigator.serviceWorker.ready,s0=await reg.pushManager.getSubscription();
+ if(s0){await db.from("push_subscriptions").delete().eq("endpoint",s0.endpoint);await s0.unsubscribe();toast("Notifications off");pushState();return}
+ if(await Notification.requestPermission()!=="granted"){toast("Notifications were not allowed");return}
+ const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID)}),j=sub.toJSON();
+ const r=await db.from("push_subscriptions").upsert({user_id:uid,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,tz:Intl.DateTimeFormat().resolvedOptions().timeZone},{onConflict:"endpoint"});
+ if(r.error){toast(r.error.message);await sub.unsubscribe();return}
+ reg.showNotification("Nudgely",{body:"Notifications are on. You will get a morning summary when invoices need attention.",icon:"icon-192.png"});
+ toast("Notifications on");pushState();
+};
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 $("#out").onclick=()=>db.auth.signOut();
 if(!window.supabase){const f=$("#fatal");f.textContent="Could not load the app. Check your connection and reload.";f.classList.remove("hide")}
 else{
  db=supabase.createClient(SB_URL,SB_KEY);
- db.auth.onAuthStateChange((_e,s)=>{if(_e==="PASSWORD_RECOVERY"){recov=true;view("rec");return}if(s&&s.user){if(!recov&&$("#pay").classList.contains("hide"))view("app");if(!recov)load()}else{view("auth");setMode()}});
+ db.auth.onAuthStateChange((_e,s)=>{if(_e==="INITIAL_SESSION"&&s&&s.user&&q0)toast("You are already signed in. Open the invite link in a private window to create a new account.");if(_e==="PASSWORD_RECOVERY"){recov=true;view("rec");return}if(s&&s.user){if(!recov&&$("#pay").classList.contains("hide"))view("app");if(!recov)load()}else{view("auth");setMode();if(q0){$("#inv").classList.remove("hide");setTimeout(()=>$("#at").scrollIntoView({behavior:"smooth"}),300)}}});
 }
 </script>
 </body>
