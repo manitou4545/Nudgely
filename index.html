@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#E58A1F">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nudgely – Get paid without chasing</title>
+<style>
+:root{--ink:#1B1F1A;--muted:#6B6B6B;--line:#DDE2D8;--field:#F1F3EE;--green:#2F8F23;--orange:#E58A1F;--okc:#0F6B63;--okb:#DDF0EC;--wc:#8A5A00;--wb:#FFF1CC;--bc:#B3261E;--bb:#FBE1DE;color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--orange);padding:14px 0;margin-bottom:24px}
+.logo{font-size:30px;letter-spacing:-.01em;color:var(--muted)}.logo i{font-style:normal;color:var(--orange)}
+button{font:inherit;cursor:pointer;border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:6px;padding:10px 14px;min-height:44px;font-weight:600}
+button.pri{background:var(--green);border-color:var(--green);color:#fff;text-transform:uppercase;letter-spacing:.02em}
+button:disabled{opacity:.6}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+h1{font-size:clamp(32px,9vw,44px);line-height:1.15;font-weight:300;letter-spacing:-.01em;margin:0 0 8px}
+h2{font-size:28px;font-weight:300;margin:32px 0 12px}
+.free{font-size:20px;margin:0 0 18px}
+.sub{font-size:14px;color:var(--muted);display:block}
+form,.add{display:grid;gap:12px}
+label{display:grid;gap:4px;font-size:17px}
+input,select{font:inherit;color:var(--ink);background:var(--field);border:0;border-radius:6px;padding:14px;min-height:48px;width:100%}
+#err,#aerr,#perr{color:var(--bc);font-size:14px;margin:0;min-height:20px}
+.link{background:none;border:0;color:var(--green);text-decoration:underline;padding:6px 0;min-height:0;text-align:left}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:var(--field);border-radius:6px;padding:14px}.stat b{display:block;font-size:24px;line-height:1.2}.stat span{font-size:14px;color:var(--muted)}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.row{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:6px;padding:14px}
+.row.bad{border-left-color:var(--bc)}.row.warn{border-left-color:var(--wc)}.row.paid{border-left-color:var(--okc);opacity:.75}
+.top,.mid{display:flex;justify-content:space-between;align-items:center;gap:10px}.mid{margin-top:8px}
+.tag{font-size:14px;font-weight:700;padding:2px 10px;border-radius:99px;background:var(--line)}
+.tag.bad{background:var(--bb);color:var(--bc)}.tag.warn{background:var(--wb);color:var(--wc)}.tag.paid{background:var(--okb);color:var(--okc)}
+.acts,.row2{display:flex;gap:8px;margin-top:12px}.acts button,.row2 button{flex:1}
+.empty{text-align:center;color:var(--muted);padding:24px}
+.ban{background:var(--wb);color:var(--wc);border-radius:6px;padding:12px;margin:0 0 14px;font-size:15px}
+.back{margin-bottom:16px}
+#shade{position:fixed;inset:0;background:rgba(10,16,30,.55);display:none}#shade.on{display:block}
+#sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:#fff;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .22s ease}
+#sheet.on{transform:none}
+.seg{display:flex;gap:8px;margin:10px 0}.seg button{flex:1}.seg button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+#msg{white-space:pre-wrap;background:var(--field);border-radius:6px;padding:12px;font-size:15px;margin:0 0 12px;max-height:34vh;overflow:auto}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:99px;font-weight:600;display:none;max-width:90%}
+.pms{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.pms button{flex:1}.pms button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.addr{word-break:break-all;background:var(--field);padding:12px;border-radius:6px;font-family:ui-monospace,Menlo,monospace;font-size:14px;margin:6px 0 10px}
+#pd{display:grid;gap:10px}#pd p{margin:0}
+.hide{display:none}
+#pr{display:none}
+@media print{body>*:not(#pr){display:none!important}#pr{display:block;padding:12px}#pr table{width:100%;border-collapse:collapse;font-size:12px}#pr td,#pr th{border:1px solid #999;padding:4px;text-align:left}}
+
+body{background:#F6F7F4}
+h1{font-size:24px;font-weight:700;letter-spacing:0;margin:0}
+h2{font-size:18px;font-weight:700;margin:28px 0 12px}
+.hd,.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.bar{justify-content:flex-start}
+.pill{font-size:13px;background:#E3E8DF;padding:6px 12px;border-radius:99px;white-space:nowrap}
+.sq{width:44px;padding:0;border:1px solid var(--line);border-radius:12px;font-size:20px}
+.usage,.stat,.add,#pd{background:#fff;border:1px solid var(--line);border-radius:14px}
+.usage{padding:14px 16px;margin-bottom:14px;font-size:14px}.usage .top{display:flex;justify-content:space-between}
+.bar2{height:8px;background:#E3E8DF;border-radius:99px;margin-top:10px}.bar2 i{display:block;height:8px;border-radius:99px;width:0}
+.add,#pd{padding:16px}
+.row{background:#fff;border-radius:12px}
+label{font-size:13px;color:var(--muted)}
+input,select{background:var(--field);border-radius:8px;min-height:44px;padding:10px 12px;font-size:15px}
+button{border-radius:12px;border-width:1.5px}
+button.pri{min-height:48px;letter-spacing:0}
+#add.lim{background:#B8C4B2;border-color:#B8C4B2;color:var(--ink)}
+#upg{min-height:52px;font-size:16px}
+#aerr:not(:empty),#err:not(:empty){background:#FBE9E7;color:#8C1D18;padding:12px 14px;border-radius:10px;font-size:14px}
+.price{background:#1F5E17;color:#fff;border-radius:16px;padding:20px;margin-bottom:16px;font-size:14px}.price .amt b{font-size:36px;font-weight:800}.price .amt span{font-size:16px}
+.lead{font-size:14px;font-weight:700}
+.pms button{min-height:56px;font-size:14px;border-width:2px}
+.st{display:flex;gap:12px;align-items:center;font-size:14px}.st i{width:28px;height:28px;border-radius:99px;background:#E3E8DF;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;flex:none}.st.g i{background:#2F8F23;color:#fff}
+form,.add{grid-template-columns:minmax(0,1fr)}.add>*,#rl{min-width:0}.wrap{overflow-x:hidden}#rl{flex:1 1 0}
+#at{font-size:20px}.hero{margin-bottom:20px}.hero p{margin:8px 0 0;font-size:16px;color:var(--muted)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px;display:grid;gap:10px}
+details{border-top:1px solid var(--line);padding-top:4px}summary{font-weight:600;cursor:pointer;min-height:44px;display:flex;align-items:center}details p{margin:0 0 8px}
+#rerr{color:var(--bc);font-size:14px;margin:0;min-height:20px}
+.ft{margin-top:32px;text-align:center;font-size:14px;color:var(--muted)}.ft a,.sub a{color:var(--muted)}
+textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-radius:8px;padding:12px;width:100%;resize:vertical}
+#sheet .acts{flex-wrap:wrap}#sheet .acts button{min-width:46%}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><span class="logo">Nudge<i>ly</i></span><button type="button" id="out" class="hide">Sign out</button></header>
+
+<section id="auth" class="hide">
+  <div class="hero"><h1>Get paid without chasing</h1><p>Track your unpaid invoices and send a polite reminder to late clients in one tap. Built for freelancers.</p></div>
+  <div class="ban hide" id="inv">You were invited! Create your free account below.</div>
+  <h1 id="at">Create your account</h1>
+  <h3 class="free">No credit card required</h3>
+  <form id="af">
+    <label>Email<input id="em" type="email" autocomplete="email" placeholder="you@example.com"></label>
+    <label>Password<input id="pw" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
+    <p id="err" role="alert"></p>
+    <button class="pri" id="go" type="submit">Create account</button>
+    <button class="link" id="sw" type="button">I already have an account</button>
+    <button class="link hide" id="fp" type="button">Forgot password?</button>
+    <p class="sub" id="cn">By creating an account you agree to the <a href="terms.html">Terms</a> and the <a href="privacy.html">Privacy Policy</a>.</p>
+  </form>
+<div id="info">
+    <div class="card"><b>How it works</b>
+      <div class="st"><i>1</i>Add your unpaid invoices</div>
+      <div class="st"><i>2</i>Tap Nudge: a friendly or firm message is ready to send</div>
+      <div class="st g"><i>3</i>Mark the invoice paid when the money arrives</div></div>
+    <div class="card"><b>Pricing</b>
+      <div class="st"><i>F</i>Free: up to 3 unpaid invoices at a time</div>
+      <div class="st g"><i>P</i>Pro: $25 a month, unlimited invoices</div>
+      <span class="sub">Pay with USDT (TRC20), bank transfer or Orange Money.</span></div>
+    <div class="card"><b>Questions</b>
+      <details><summary>Does Nudgely send emails for me?</summary><p class="sub">Not yet. You review the message and send it from your own email, so it comes from you.</p></details>
+      <details><summary>How do I pay for Pro?</summary><p class="sub">Send the payment, then tap “I have paid”. Your account is activated within 24 hours.</p></details>
+      <details><summary>What happens to my data?</summary><p class="sub">It is stored with Supabase and never sold. See the <a href="privacy.html">Privacy Policy</a>.</p></details></div>
+  </div>
+</section>
+
+<section id="rec" class="hide">
+  <h1>Set a new password</h1>
+  <form id="rf2"><label>New password<input id="np" type="password" autocomplete="new-password" placeholder="At least 6 characters"></label><p id="rerr" role="alert"></p><button class="pri" type="submit">Save password</button></form>
+</section>
+
+<section id="app" class="hide">
+  <div class="ban hide" id="pend">Payment request received. We are checking it and will activate Pro within 24 hours.</div>
+  <div class="hd"><h1>Your invoices</h1><span class="pill" id="plan"></span></div>
+  <div class="usage hide" id="usage"><div class="top"><span>Unpaid invoices</span><b id="un"></b></div><div class="bar2"><i id="bf"></i></div></div>
+  <div class="stats">
+    <div class="stat"><b id="tot">$0</b><span>Outstanding</span></div>
+    <div class="stat"><b id="late">0</b><span>Overdue invoices</span></div>
+    <div class="stat" style="grid-column:1/-1"><b id="col">$0</b><span>Collected this month</span></div>
+    <div class="stat" style="grid-column:1/-1"><b id="cnu">$0</b><span>Collected this month after a nudge</span></div>
+  </div>
+  <div class="card" id="age"><b>Overdue by age</b>
+    <div class="top"><span>1–30 days</span><b id="a1"></b></div>
+    <div class="top"><span>31–60 days</span><b id="a2"></b></div>
+    <div class="top"><span>61+ days</span><b id="a3"></b></div></div>
+  <ul id="list"></ul>
+  <div class="row2"><button type="button" id="csv">Export CSV</button><button type="button" id="pdf">Export PDF</button></div>
+  <h2>Add an invoice</h2>
+  <div class="add">
+    <label>Client name<input id="f-name" autocomplete="off"></label>
+    <label>Client email<input id="f-mail" type="email" autocomplete="off"></label>
+    <label>Client WhatsApp (optional, with country code)<input id="f-tel" type="tel" inputmode="tel" placeholder="+33612345678" autocomplete="off"></label>
+    <label>Invoice number (optional)<input id="f-num" autocomplete="off"></label>
+    <label>Amount<input id="f-amt" type="number" inputmode="decimal" min="1"></label>
+    <label>Currency<select id="f-cur"><option>USD</option><option>EUR</option><option>GBP</option></select></label>
+    <label>Due date<input id="f-due" type="date"></label>
+    <p id="aerr" role="alert"></p>
+    <button class="pri" id="add" type="button">Add invoice</button>
+  </div>
+  <h2>Payment instructions</h2>
+  <div class="add">
+    <p class="sub" style="font-size:15px;margin:0">Saved once and added to every reminder you send. Example: PayPal address, IBAN or a payment link.</p>
+    <label>How should clients pay you?<textarea id="pt2" maxlength="400" rows="4" placeholder="PayPal: you@example.com"></textarea></label>
+    <button type="button" id="ps">Save instructions</button>
+  </div>
+  <h2>Notifications</h2>
+  <div class="add">
+    <p class="sub" style="font-size:15px;margin:0">Get a notification on this phone each morning when invoices are due or overdue.</p>
+    <p class="sub" id="pnote" style="margin:0"></p>
+    <button type="button" class="pri" id="pn">Enable notifications</button>
+  </div>
+  <button class="pri" id="upg" type="button" style="width:100%;margin-top:24px">Upgrade to Pro →</button>
+  <div id="arw" class="hide"><h2>Automatic reminders</h2>
+    <p class="sub" style="font-size:16px">Nudgely emails your client 1, 7 and 14 days after the due date. Replies come to you.</p>
+    <button type="button" id="ar"></button></div>
+  <section id="invite">
+    <div class="price" style="margin-top:28px"><div>Referral</div><div style="font-size:22px;font-weight:800;line-height:1.25;margin:4px 0 8px">Invite a freelancer, get a free month</div><div>For every friend who subscribes to Pro, you get 1 month free.</div></div>
+    <div class="add">
+      <div class="sub">Your invite link</div>
+      <div style="display:flex;gap:8px;align-items:center"><div class="addr" id="rl" style="flex:1;margin:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;word-break:normal"></div><button type="button" class="pri" id="rc" style="min-width:80px">Copy</button></div>
+      <button type="button" class="pri" id="wa" style="background:#1F7A3E;border-color:#1F7A3E">Share on WhatsApp</button>
+      <button type="button" id="em2">Share by email</button>
+    </div>
+    <div class="stats" style="margin:10px 0"><div class="stat"><b id="rj">0</b><span>Friends joined</span></div><div class="stat"><b id="rf">0</b><span>Free months earned</span></div></div>
+    <div class="add"><b>How it works</b>
+      <div class="st"><i>1</i>Share your link with a freelancer</div>
+      <div class="st"><i>2</i>They create their account</div>
+      <div class="st g"><i>3</i>They subscribe: you get 1 free month</div>
+    </div>
+  </section>
+  <section id="adm" class="hide"><h2>Admin</h2><ul id="al"></ul></section>
+</section>
+
+<section id="pay" class="hide">
+  <div class="bar"><button type="button" class="sq" id="bk" aria-label="Back to invoices">←</button><h1>Upgrade to Pro</h1></div>
+  <div class="price"><div>Nudgely Pro</div><div class="amt"><b id="pp"></b> <span>/ month</span></div><div>Unlimited invoices<span id="pt"></span></div></div>
+  <div class="lead">Choose a payment method</div>
+  <div class="pms" id="pm"></div>
+  <div id="pd"></div>
+  <p class="sub" style="margin-top:12px">After your payment, tap “I have paid”. Your account is activated within 24 hours.</p>
+</section>
+<p id="fatal" class="hide" role="alert"></p>
+<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:gerardnomo8@gmail.com">Contact</a> · v9</footer>
+</div>
+
+<div id="pr"></div>
+<div id="shade"></div>
+<div id="sheet" role="dialog" aria-label="Reminder preview">
+  <b id="to"></b>
+  <div class="seg"><button type="button" data-tone="friendly" aria-pressed="true">Friendly</button><button type="button" data-tone="firm" aria-pressed="false">Firm</button><button type="button" data-tone="final" aria-pressed="false">Final</button></div>
+  <div id="msg"></div>
+  <div class="acts"><button type="button" id="cancel">Cancel</button><button type="button" id="copy">Copy</button><button type="button" id="wam">WhatsApp</button><button type="button" class="pri" id="mail">Send email</button></div>
+</div>
+<div id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script src="payments.js"></script>
+<script>
+const SB_URL="https://eycgkbfjvtcejfrnwlhp.supabase.co";
+const SB_KEY="sb_publishable_1IbzYcFo5D2-b9eNzgMHfA_-BmDx7tZ";
+const ADMIN="gerardnomo8@gmail.com",AUTO=false;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const days=n=>n+" day"+(n===1?"":"s");
+const money=(v,c)=>{try{return new Intl.NumberFormat("en-US",{style:"currency",currency:c||"USD"}).format(v)}catch(e){return v+" "+c}};
+const sum=l=>{const t={};l.forEach(i=>{const c=i.currency||"USD";t[c]=(t[c]||0)+Number(i.amount)});const k=Object.keys(t);return k.length?k.map(c=>money(t[c],c)).join(" · "):money(0,"USD")};
+const q0=new URLSearchParams(location.search).get("ref");
+if(q0)try{localStorage.setItem("ndg_ref",q0.slice(0,12))}catch(x){}
+let payTxt="",recov=false,rlink="",db,inv=[],up=true,tone="friendly",cur=null,pro=false,adm=false,ars=true,uid=null;
+function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",2600)}
+function today(){const d=new Date();return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5}
+const dueIn=i=>Math.round(Date.parse(i.due_date)/864e5-today());
+function status(i){
+ if(i.status==="paid")return["paid","Paid"];
+ const d=dueIn(i);
+ if(d<0)return["bad","Overdue "+days(-d)];
+ if(d===0)return["warn","Due today"];
+ return[d<=7?"warn":"",("Due in "+days(d))];
+}
+function nudged(i){
+ if(!i.last_reminded_at)return"Not nudged yet";
+ const n=Math.floor((Date.now()-Date.parse(i.last_reminded_at))/864e5),c=i.reminder_count>1?" ("+i.reminder_count+" reminders)":"";
+ return(n<=0?"Nudged today":"Nudged "+days(n)+" ago")+c;
+}
+function view(name){["auth","app","pay","rec"].forEach(k=>$("#"+k).classList.toggle("hide",k!==name));$("#out").classList.toggle("hide",name==="auth")}
+function setMode(){
+ $("#at").textContent=up?"Create your account":"Sign in";
+ $("#go").textContent=up?"Create account":"Sign in";
+ $("#sw").textContent=up?"I already have an account":"Create a new account";$("#fp").classList.toggle("hide",up);$("#cn").classList.toggle("hide",!up);
+ $("#err").textContent="";
+}
+async function plan(){
+ const r=await db.from("user_plans").select("plan,expires_at").maybeSingle();
+ pro=!!(r.data&&r.data.plan==="pro"&&Date.parse(r.data.expires_at)>Date.now());
+ const u=(await db.auth.getUser()).data.user;
+ adm=!!u&&u.email===ADMIN;uid=u&&u.id;
+ if(pro&&AUTO){const x=await db.from("user_settings").select("auto_reminders").maybeSingle();ars=x.data?x.data.auto_reminders:true}
+}
+async function loadAdm(){
+ const r=await db.rpc("admin_pending"),l=r.data||[];
+ $("#al").innerHTML=l.length?l.map(p=>`<li class="row"><b>${esc(p.email)}</b><span class="sub">${esc(p.method)} · ${esc(p.reference||"no ID")}</span><div class="acts"><button class="pri" data-e="${esc(p.email)}">Activate 1 month</button></div></li>`).join(""):`<li class="empty">No pending payments.</li>`;
+}
+async function loadRef(){
+ let c=null;try{c=localStorage.getItem("ndg_ref")}catch(x){}
+ if(c){await db.rpc("claim_referral",{p_code:c});try{localStorage.removeItem("ndg_ref")}catch(x){}}
+ const r=await db.rpc("my_referrals");if(!r.data)return;
+ rlink=location.origin+location.pathname+"?ref="+r.data.code;
+ $("#rl").textContent=rlink;
+ $("#rj").textContent=r.data.count;$("#rf").textContent=r.data.rewarded;
+}
+$("#rc").onclick=async()=>{try{await navigator.clipboard.writeText(rlink);toast("Invite link copied")}catch(x){toast("Could not copy. Select the text instead.")}};
+const shareTxt=()=>"I use Nudgely to chase late invoices without awkward emails. Try it free: "+rlink;
+$("#wa").onclick=()=>{if(rlink)window.open("https://wa.me/?text="+encodeURIComponent(shareTxt()),"_blank")};
+$("#em2").onclick=()=>{if(rlink)location.href="mailto:?subject="+encodeURIComponent("Try Nudgely")+"&body="+encodeURIComponent(shareTxt())};
+async function load(){
+ const{data,error}=await db.from("invoices").select("*, clients(name,email,phone)").order("due_date");
+ if(error){toast(error.message);return}
+ inv=data;await plan();pushState();{const pi=await db.from("payment_instructions").select("body").maybeSingle();payTxt=pi.data?pi.data.body:"";$("#pt2").value=payTxt}render();if(adm)loadAdm();loadRef();
+}
+function render(){
+ const open=inv.filter(i=>i.status!=="paid"),n=new Date();
+ $("#upg").classList.toggle("hide",pro);$("#plan").textContent=pro?"Pro":"Free plan";$("#usage").classList.toggle("hide",pro);
+ $("#un").textContent=open.length+" / 3";$("#bf").style.width=Math.min(open.length/3,1)*100+"%";$("#bf").style.background=open.length>=3?"#B3261E":"#2F8F23";$("#add").classList.toggle("lim",!pro&&open.length>=3);$("#adm").classList.toggle("hide",!adm);$("#arw").classList.toggle("hide",!(pro&&AUTO));$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
+ let pe=false;try{pe=localStorage.getItem("ndg_pend")==="1";if(pro&&pe)localStorage.removeItem("ndg_pend")}catch(x){}
+ $("#pend").classList.toggle("hide",!(pe&&!pro));
+ $("#tot").textContent=sum(open);
+ $("#col").textContent=sum(inv.filter(i=>{const d=i.paid_at&&new Date(i.paid_at);return i.status==="paid"&&d&&d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}));
+ $("#late").textContent=open.filter(i=>dueIn(i)<0).length;
+ const od=open.filter(i=>dueIn(i)<0),ag=(a,b)=>sum(od.filter(i=>{const d=-dueIn(i);return d>=a&&d<=b}));
+ $("#age").classList.toggle("hide",!od.length);$("#a1").textContent=ag(1,30);$("#a2").textContent=ag(31,60);$("#a3").textContent=ag(61,99999);
+ $("#cnu").textContent=sum(inv.filter(i=>{const d=i.paid_at&&new Date(i.paid_at);return i.status==="paid"&&d&&i.reminder_count>0&&d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear()}));
+ const rows=[...inv].sort((a,b)=>(a.status==="paid")-(b.status==="paid")||a.due_date.localeCompare(b.due_date));
+ $("#list").innerHTML=rows.length?rows.map(i=>{
+  const[c,t]=status(i),paid=i.status==="paid";
+  return `<li class="row ${c||""}"><div class="top"><div><b>${esc(i.clients?.name)}</b><span class="sub">${esc(i.number||"No number")}</span></div><b>${money(i.amount,i.currency)}</b></div><div class="mid"><span class="tag ${c||""}">${t}</span><span class="sub">${paid?"":nudged(i)}</span></div>${paid?"":`<div class="acts"><button class="pri" data-a="nudge" data-id="${i.id}">Nudge</button><button data-a="paid" data-id="${i.id}">Mark paid</button></div>`}</li>`;
+ }).join(""):`<li class="empty">No invoices yet. Add one below and Nudgely will track it.</li>`;
+}
+function draft(){
+ const t=draft0();if(!payTxt)return t;
+ const k=t.lastIndexOf("\n\n");return t.slice(0,k)+"\n\nHow to pay:\n"+payTxt+t.slice(k);
+}
+function draft0(){
+ const i=cur,f=(i.clients?.name||"there").split(" ")[0],m=money(i.amount,i.currency),d=dueIn(i),n=i.number?"invoice "+i.number:"your invoice";
+ if(tone==="final")return `Hello ${f},\n\nThis is a final notice: ${n} for ${m} ${d<0?"is now "+days(-d)+" overdue":"is due "+(d===0?"today":"in "+days(d))}. Unless I receive payment or hear from you within 3 days, I will have to consider other options.\n\nRegards,`;
+ if(tone==="friendly"){
+  const w=d<0?"was due "+days(-d)+" ago":d===0?"is due today":"is due in "+days(d);
+  return `Hi ${f},\n\nA quick reminder that ${n} for ${m} ${w}. If it’s already on its way, thank you, and please ignore this note.\n\nThanks,`;
+ }
+ const w=d<0?"is "+days(-d)+" past due. Please send payment by Friday or tell me when to expect it.":"is due "+(d===0?"today":"in "+days(d))+". Please confirm that payment will arrive on time.";
+ return `Hello ${f},\n\n${n[0].toUpperCase()+n.slice(1)} for ${m} ${w}\n\nRegards,`;
+}
+function build(){
+ $("#to").textContent="To: "+(cur.clients?.name||"")+" ("+(cur.clients?.email||"")+")";
+ $("#msg").textContent=draft();
+ document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tone===tone));
+}
+const openSheet=()=>{$("#shade").classList.add("on");$("#sheet").classList.add("on")};
+const closeSheet=()=>{$("#shade").classList.remove("on");$("#sheet").classList.remove("on")};
+async function markNudged(){
+ const{error}=await db.from("invoices").update({last_reminded_at:new Date().toISOString(),reminder_count:(cur.reminder_count||0)+1}).eq("id",cur.id);
+ if(error)toast(error.message);else await load();
+}
+$("#list").addEventListener("click",async e=>{
+ const b=e.target.closest("button");if(!b)return;
+ const i=inv.find(x=>x.id===b.dataset.id);if(!i)return;
+ if(b.dataset.a==="paid"){
+  const{error}=await db.from("invoices").update({status:"paid",paid_at:new Date().toISOString()}).eq("id",i.id);
+  if(error)toast(error.message);else{await load();toast("Marked as paid")}
+ }else{cur=i;build();openSheet()}
+});
+document.querySelector(".seg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){tone=b.dataset.tone;build()}});
+$("#cancel").onclick=closeSheet;$("#shade").onclick=closeSheet;
+$("#copy").onclick=async()=>{
+ try{await navigator.clipboard.writeText($("#msg").textContent);toast("Message copied")}catch(e){toast("Could not copy. Select the text instead.")}
+ await markNudged();closeSheet();
+};
+$("#wam").onclick=async()=>{
+ const p=String(cur.clients?.phone||"").replace(/[^\d]/g,"").replace(/^00/,"");
+ window.open("https://wa.me/"+p+"?text="+encodeURIComponent($("#msg").textContent),"_blank");
+ await markNudged();closeSheet();
+};
+$("#ps").onclick=async()=>{
+ const body=$("#pt2").value.trim().slice(0,400);
+ const r=await db.from("payment_instructions").upsert({user_id:uid,body});
+ if(r.error){toast(r.error.message);return}
+ payTxt=body;toast("Instructions saved");
+};
+$("#mail").onclick=async()=>{
+ const sub="Reminder: "+(cur.number?"invoice "+cur.number:"your invoice");
+ const href="mailto:"+encodeURIComponent(cur.clients?.email||"")+"?subject="+encodeURIComponent(sub)+"&body="+encodeURIComponent($("#msg").textContent);
+ await markNudged();closeSheet();location.href=href;
+};
+$("#add").onclick=async()=>{
+ const name=$("#f-name").value.trim(),email=$("#f-mail").value.trim().toLowerCase(),num=$("#f-num").value.trim(),amt=parseFloat($("#f-amt").value),due=$("#f-due").value,tel=$("#f-tel").value.trim(),er=$("#aerr");
+ if(!name||!email||!(amt>0)||!due){er.textContent="Enter a client name, an email, an amount and a due date.";return}
+ er.textContent="";$("#add").disabled=true;
+ let{data:c,error}=await db.from("clients").select("id,name,phone").eq("email",email).maybeSingle();
+ let cid=c?.id;
+ if(!error&&c&&(c.name!==name||(tel&&c.phone!==tel))){const u=await db.from("clients").update(tel?{name,phone:tel}:{name}).eq("id",cid).select("id");if(u.error)error=u.error;else if(!u.data.length)error={message:"Could not update the client name."}}
+ if(!error&&!cid){const r=await db.from("clients").insert({name,email,phone:tel||null}).select("id").single();error=r.error;cid=r.data?.id}
+ if(!error){const r=await db.from("invoices").insert({client_id:cid,number:num||null,amount:amt,currency:$("#f-cur").value,due_date:due});error=r.error}
+ $("#add").disabled=false;
+ if(error){er.textContent=error.message;return}
+ ["#f-name","#f-mail","#f-tel","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");
+ await load();toast("Invoice added");
+};
+$("#sw").onclick=()=>{up=!up;setMode()};
+$("#af").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const email=$("#em").value.trim(),password=$("#pw").value;
+ if(!email||password.length<6){$("#err").textContent="Enter an email and a password of at least 6 characters.";return}
+ $("#go").disabled=true;$("#err").textContent="";
+ const r=up?await db.auth.signUp({email,password}):await db.auth.signInWithPassword({email,password});
+ $("#go").disabled=false;
+ if(r.error)$("#err").textContent=r.error.message;
+ else if(up&&!r.data.session)$("#err").textContent="Check your email to confirm your account, then sign in.";
+});
+const P=window.PAYMENTS||{},PRICE=25;
+let pm=null;
+const usdt=()=>(P.usdt||[]).filter(x=>x.address);
+function refForm(){return `<label>Transaction ID<input id="ref" autocomplete="off"></label><p id="perr" role="alert"></p><button class="pri" type="button" id="paid">I have paid</button>`}
+function renderPay(){
+ $("#pp").textContent="$"+PRICE;$("#pt").textContent=AUTO?" and automatic reminders":"";
+ const m=[];
+ if(usdt().length)m.push(["usdt","USDT (TRC20)"]);
+ m.push(["bank","Bank transfer"]);
+ if(P.orange)m.push(["orange","Orange Money"]);
+ if(!pm||!m.some(x=>x[0]===pm))pm=m[0][0];
+ $("#pm").innerHTML=m.map(x=>`<button type="button" data-m="${x[0]}" aria-pressed="${x[0]===pm}">${x[1]}</button>`).join("");
+ let h="";
+ if(pm==="usdt")h=`<p>Send <b>${PRICE} USDT</b> on the <b>TRC20 (Tron)</b> network only. Any other network and the funds are lost.</p>`+usdt().map(x=>`<div><span class="sub">${esc(x.label)}</span><div class="addr">${esc(x.address)}</div><button type="button" data-copy="${esc(x.address)}">Copy address</button></div>`).join("")+refForm();
+ else if(pm==="bank")h=`<p>Pay by bank transfer. Tap the button and we’ll email you our bank details.</p><button class="pri" type="button" id="bankreq">Request bank details</button>`;
+ else h=`<p>Send the equivalent of $${PRICE} to this Orange Money number:</p><div class="addr">${esc(P.orange)}</div>`+refForm();
+ $("#pd").innerHTML=h;
+}
+$("#pm").addEventListener("click",e=>{const b=e.target.closest("button");if(b){pm=b.dataset.m;renderPay()}});
+$("#pd").addEventListener("click",async e=>{
+ const b=e.target.closest("button");if(!b||b.id==="done")return;
+ if(b.dataset.copy){try{await navigator.clipboard.writeText(b.dataset.copy);toast("Address copied")}catch(x){toast("Could not copy. Select the text instead.")}return}
+ let ref=null;
+ if(b.id==="paid"){ref=$("#ref").value.trim();if(!ref){$("#perr").textContent="Paste your transaction ID first.";return}}
+ else if(b.id!=="bankreq")return;
+ b.disabled=true;const pe0=$("#perr");if(pe0)pe0.textContent="Sending…";
+ const{data:{user}}=await db.auth.getUser();
+ const{error}=await db.from("payment_requests").insert({method:pm,reference:ref,email:user?user.email:null,user_id:user?user.id:null});
+ b.disabled=false;
+ if(error){const pe=$("#perr");if(pe)pe.textContent="Error: "+error.message;else toast(error.message);return}
+ if(pm!=="bank")try{localStorage.setItem("ndg_pend","1")}catch(x){}
+ $("#pd").innerHTML=`<p><b>Thank you!</b> ${pm==="bank"?"We will email you our bank details shortly.":"We will check your payment and activate Pro within 24 hours."}</p><button class="pri" type="button" id="done">Back to my invoices</button>`;
+});
+$("#ar").onclick=async()=>{
+ ars=!ars;$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
+ const r=await db.from("user_settings").upsert({user_id:uid,auto_reminders:ars});
+ if(r.error){ars=!ars;toast(r.error.message);render()}
+};
+$("#upg").onclick=()=>{view("pay");renderPay();scrollTo(0,0)};
+$("#bk").onclick=()=>{view("app");render()};
+document.addEventListener("click",e=>{if(e.target.id==="done"){view("app");load()}});
+$("#al").addEventListener("click",async e=>{
+ const b=e.target.closest("button");if(!b)return;b.disabled=true;
+ const r=await db.rpc("admin_activate",{p_email:b.dataset.e,p_months:1});
+ toast(r.error?r.error.message:r.data);loadAdm();
+});
+$("#csv").onclick=()=>{
+ const q=v=>{v=String(v??"");if(/^[=+\-@]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'};
+ const r=[["Client","Email","Invoice","Amount","Currency","Due date","Status","Paid on"]].concat(inv.map(i=>[i.clients?.name,i.clients?.email,i.number,i.amount,i.currency||"USD",i.due_date,i.status,i.paid_at?i.paid_at.slice(0,10):""]));
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob(["\ufeff"+r.map(x=>x.map(q).join(",")).join("\n")],{type:"text/csv"}));
+ a.download="nudgely-invoices.csv";a.click();
+};
+$("#pdf").onclick=()=>{
+ $("#pr").innerHTML="<h2>Nudgely invoices</h2><table><tr><th>Client</th><th>Invoice</th><th>Amount</th><th>Due</th><th>Status</th></tr>"+inv.map(i=>`<tr><td>${esc(i.clients?.name)}</td><td>${esc(i.number)}</td><td>${money(i.amount,i.currency)}</td><td>${esc(i.due_date)}</td><td>${esc(i.status)}</td></tr>`).join("")+"</table>";
+ toast("Choose “Save as PDF” in the print window");
+ setTimeout(()=>window.print(),600);
+};
+$("#fp").onclick=async()=>{
+ const email=$("#em").value.trim();
+ if(!email){$("#err").textContent="Enter your email above first.";return}
+ const r=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+ if(r.error)$("#err").textContent=r.error.message;else{$("#err").textContent="";toast("If this email has an account, a reset link is on its way")}
+};
+$("#rf2").addEventListener("submit",async e=>{
+ e.preventDefault();const pw=$("#np").value;
+ if(pw.length<6){$("#rerr").textContent="Use at least 6 characters.";return}
+ const r=await db.auth.updateUser({password:pw});
+ if(r.error){$("#rerr").textContent=r.error.message;return}
+ recov=false;toast("Password updated");view("app");load();
+});
+window.addEventListener("unhandledrejection",e=>{const m=(e.reason&&e.reason.message)||String(e.reason);const pe=$("#perr");if(pe)pe.textContent="Error: "+m;toast("Error: "+m)});
+
+const VAPID="BFZKuIAIV34Elvu3qM9KHMafphjwdXboYZAuzwiBnBACjsoriQWtErA5oMiwMFDZrtUr0laoQ8nVG1h7uWFHc3Q";
+const b64=x=>{const r=atob((x+"=".repeat((4-x.length%4)%4)).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(r,c=>c.charCodeAt(0))};
+async function pushState(){
+ if(!("serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window)){$("#pn").classList.add("hide");$("#pnote").textContent="Notifications are not supported in this browser. On iPhone, add Nudgely to your Home Screen first, then open it from there.";return}
+ const reg=await navigator.serviceWorker.getRegistration(),sub=reg&&await reg.pushManager.getSubscription();
+ $("#pn").textContent=sub?"Turn off notifications":"Enable notifications";
+}
+$("#pn").onclick=async()=>{
+ const reg=await navigator.serviceWorker.ready,s0=await reg.pushManager.getSubscription();
+ if(s0){await db.from("push_subscriptions").delete().eq("endpoint",s0.endpoint);await s0.unsubscribe();toast("Notifications off");pushState();return}
+ if(await Notification.requestPermission()!=="granted"){toast("Notifications were not allowed");return}
+ const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID)}),j=sub.toJSON();
+ const r=await db.from("push_subscriptions").upsert({user_id:uid,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,tz:Intl.DateTimeFormat().resolvedOptions().timeZone},{onConflict:"endpoint"});
+ if(r.error){toast(r.error.message);await sub.unsubscribe();return}
+ reg.showNotification("Nudgely",{body:"Notifications are on. You will get a morning summary when invoices need attention.",icon:"icon-192.png"});
+ toast("Notifications on");pushState();
+};
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+$("#out").onclick=()=>db.auth.signOut();
+if(!window.supabase){const f=$("#fatal");f.textContent="Could not load the app. Check your connection and reload.";f.classList.remove("hide")}
+else{
+ db=supabase.createClient(SB_URL,SB_KEY);
+ db.auth.onAuthStateChange((_e,s)=>{if(_e==="INITIAL_SESSION"&&s&&s.user&&q0)toast("You are already signed in. Open the invite link in a private window to create a new account.");if(_e==="PASSWORD_RECOVERY"){recov=true;view("rec");return}if(s&&s.user){if(!recov&&$("#pay").classList.contains("hide"))view("app");if(!recov)load()}else{view("auth");setMode();if(q0){$("#inv").classList.remove("hide");setTimeout(()=>$("#at").scrollIntoView({behavior:"smooth"}),300)}}});
+}
+</script>
+</body>
+</html>
