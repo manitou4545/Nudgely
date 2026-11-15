@@ -144,6 +144,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
     <label>Due date<input id="f-due" type="date"></label>
     <p id="aerr" role="alert"></p>
     <button class="pri" id="add" type="button">Add invoice</button>
+    <button type="button" id="addcancel" class="hide">Cancel edit</button>
   </div>
   </div>
 <div id="t-bal" class="hide"><div class="stats">
@@ -224,6 +225,8 @@ const SB_URL="https://eycgkbfjvtcejfrnwlhp.supabase.co";
 const SB_KEY="sb_publishable_1IbzYcFo5D2-b9eNzgMHfA_-BmDx7tZ";
 const ADMIN="gerardnomo8@gmail.com",AUTO=false;
 const $=s=>document.querySelector(s);
+let editId=null;
+function endEdit(){editId=null;["#f-name","#f-mail","#f-tel","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");$("#add").textContent="Add invoice";$("#addcancel").classList.add("hide")}
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const days=n=>n+" day"+(n===1?"":"s");
 const money=(v,c)=>{try{return new Intl.NumberFormat("en-US",{style:"currency",currency:c||"USD"}).format(v)}catch(e){return v+" "+c}};
@@ -296,7 +299,7 @@ function render(){
  const rows=[...inv].sort((a,b)=>(a.status==="paid")-(b.status==="paid")||a.due_date.localeCompare(b.due_date));
  $("#list").innerHTML=rows.length?rows.map(i=>{
   const[c,t]=status(i),paid=i.status==="paid";
-  return `<li class="row ${c||""}"><div class="top"><div><b>${esc(i.clients?.name)}</b><span class="sub">${esc(i.number||"No number")}</span></div><b>${money(i.amount,i.currency)}</b></div><div class="mid"><span class="tag ${c||""}">${t}</span><span class="sub">${paid?"":nudged(i)}</span></div>${paid?"":`<div class="acts"><button class="pri" data-a="nudge" data-id="${i.id}">Nudge</button><button data-a="paid" data-id="${i.id}">Mark paid</button></div>`}</li>`;
+  return `<li class="row ${c||""}"><div class="top"><div><b>${esc(i.clients?.name)}</b><span class="sub">${esc(i.number||"No number")}</span></div><b>${money(i.amount,i.currency)}</b></div><div class="mid"><span class="tag ${c||""}">${t}</span><span class="sub">${paid?"":nudged(i)}</span></div>${paid?`<div class="acts"><button data-a="unpaid" data-id="${i.id}">Mark unpaid</button></div>`:`<div class="acts"><button class="pri" data-a="nudge" data-id="${i.id}">Nudge</button><button data-a="paid" data-id="${i.id}">Mark paid</button></div>`}<div class="acts"><button data-a="edit" data-id="${i.id}">Edit</button><button data-a="del" data-id="${i.id}" style="color:#B3261E">Delete</button></div></li>`;
  }).join(""):`<li class="empty">No invoices yet. Add one below and Nudgely will track it.</li>`;
 }
 function draft(){
@@ -330,6 +333,18 @@ $("#list").addEventListener("click",async e=>{
  if(b.dataset.a==="paid"){
   const{error}=await db.from("invoices").update({status:"paid",paid_at:new Date().toISOString()}).eq("id",i.id);
   if(error)toast(error.message);else{await load();toast("Marked as paid")}
+ }else if(b.dataset.a==="unpaid"){
+  if(!pro&&inv.filter(x=>x.status!=="paid").length>=3){toast("Free plan limit: 3 unpaid invoices. Upgrade to Pro.");return}
+  const ref=inv.find(x=>x.status!=="paid");
+  const{error}=await db.from("invoices").update({status:ref?ref.status:"unpaid",paid_at:null}).eq("id",i.id);
+  if(error)toast(error.message);else{await load();toast("Marked as unpaid")}
+ }else if(b.dataset.a==="del"){
+  if(!confirm("Delete this invoice? This cannot be undone."))return;
+  const{error}=await db.from("invoices").delete().eq("id",i.id);
+  if(error)toast(error.message);else{if(editId===i.id)endEdit();await load();toast("Invoice deleted")}
+ }else if(b.dataset.a==="edit"){
+  editId=i.id;$("#f-name").value=i.clients?.name||"";$("#f-mail").value=i.clients?.email||"";$("#f-tel").value=i.clients?.phone||"";$("#f-num").value=i.number||"";$("#f-amt").value=i.amount;$("#f-cur").value=i.currency;$("#f-due").value=i.due_date;
+  $("#add").textContent="Save changes";$("#addcancel").classList.remove("hide");$("#aerr").textContent="";$("#f-name").scrollIntoView({behavior:"smooth",block:"center"});
  }else{cur=i;build();openSheet()}
 });
 document.querySelector(".seg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){tone=b.dataset.tone;build()}});
@@ -357,18 +372,19 @@ $("#mail").onclick=async()=>{
 $("#add").onclick=async()=>{
  const name=$("#f-name").value.trim(),email=$("#f-mail").value.trim().toLowerCase(),num=$("#f-num").value.trim(),amt=parseFloat($("#f-amt").value),due=$("#f-due").value,tel=$("#f-tel").value.trim(),er=$("#aerr");
  if(!name||!email||!(amt>0)||!due){er.textContent="Enter a client name, an email, an amount and a due date.";return}
- if(!pro&&inv.filter(i=>i.status!=="paid").length>=3){er.textContent="Free plan limit reached: 3 unpaid invoices. Upgrade to Pro for unlimited invoices.";return}
+ if(!editId&&!pro&&inv.filter(i=>i.status!=="paid").length>=3){er.textContent="Free plan limit reached: 3 unpaid invoices. Upgrade to Pro for unlimited invoices.";return}
  er.textContent="";$("#add").disabled=true;
  let{data:c,error}=await db.from("clients").select("id,name,phone").eq("email",email).maybeSingle();
  let cid=c?.id;
  if(!error&&c&&(c.name!==name||(tel&&c.phone!==tel))){const u=await db.from("clients").update(tel?{name,phone:tel}:{name}).eq("id",cid).select("id");if(u.error)error=u.error;else if(!u.data.length)error={message:"Could not update the client name."}}
  if(!error&&!cid){const r=await db.from("clients").insert({name,email,phone:tel||null}).select("id").single();error=r.error;cid=r.data?.id}
- if(!error){const r=await db.from("invoices").insert({client_id:cid,number:num||null,amount:amt,currency:$("#f-cur").value,due_date:due});error=r.error}
+ if(!error){const row={client_id:cid,number:num||null,amount:amt,currency:$("#f-cur").value,due_date:due};const r=editId?await db.from("invoices").update(row).eq("id",editId).select("id"):await db.from("invoices").insert(row);error=r.error||(editId&&!r.data?.length?{message:"Could not save changes."}:null)}
  $("#add").disabled=false;
  if(error){er.textContent=error.message;return}
- ["#f-name","#f-mail","#f-tel","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");
- await load();toast("Invoice added");
+ const wasEdit=!!editId;endEdit();
+ await load();toast(wasEdit?"Changes saved":"Invoice added");
 };
+$("#addcancel").onclick=endEdit;
 $("#sw").onclick=()=>{up=!up;setMode()};
 $("#af").addEventListener("submit",async e=>{
  e.preventDefault();
