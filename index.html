@@ -102,6 +102,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
     <label>Email<input id="em" type="email" autocomplete="email" placeholder="you@example.com"></label>
     <label>Password<input id="pw" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
     <p id="err" role="alert"></p>
+    <button class="link hide" id="rs" type="button">Resend confirmation email</button>
     <button class="pri" id="go" type="submit">Create account</button>
     <button class="link" id="sw" type="button">I already have an account</button>
     <button class="link hide" id="fp" type="button">Forgot password?</button>
@@ -129,7 +130,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
 </section>
 
 <section id="app" class="hide">
-<div id="t-inv"><div class="ban hide" id="pend">Payment request received. We are checking it and will activate Pro within 24 hours.</div>
+<div id="t-inv"><div class="ban hide" id="exp" role="button" style="cursor:pointer"></div><div class="ban hide" id="pend">Payment request received. We are checking it and will activate Pro within 24 hours.</div>
   <div class="hd"><h1>Your invoices</h1><span class="pill" id="plan"></span></div>
   <div class="usage hide" id="usage"><div class="top"><span>Unpaid invoices</span><b id="un"></b></div><div class="bar2"><i id="bf"></i></div></div>
   <ul id="list"></ul>
@@ -190,8 +191,11 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
       <div class="st g"><i>3</i>They subscribe: you get 1 free month</div>
     </div>
   </section>
-  </div>
-<div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><ul id="al"></ul></section>
+  <h2>Delete account</h2>
+  <div class="add"><p class="sub" style="font-size:15px;margin:0">Permanently deletes your account, your invoices and your clients. This cannot be undone.</p>
+  <button type="button" id="delacc" style="color:#B3261E">Delete my account</button></div>
+</div>
+<div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><div class="stats" id="ast"></div><ul id="al"></ul></section>
 </div>
 <nav id="tabs"><button type="button" data-t="inv" aria-pressed="true"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></b>Invoices</button><button type="button" data-t="bal" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 20v-7M12 20V5M17 20v-10"/></svg></b>Summary</button><button type="button" data-t="acc" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></b>Account</button><button type="button" id="tb-adm" class="hide" data-t="adm" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></b>Admin</button></nav>
 </section>
@@ -233,7 +237,7 @@ const money=(v,c)=>{try{return new Intl.NumberFormat("en-US",{style:"currency",c
 const sum=l=>{const t={};l.forEach(i=>{const c=i.currency||"USD";t[c]=(t[c]||0)+Number(i.amount)});const k=Object.keys(t);return k.length?k.map(c=>money(t[c],c)).join(" · "):money(0,"USD")};
 const q0=new URLSearchParams(location.search).get("ref");
 if(q0)try{localStorage.setItem("ndg_ref",q0.slice(0,12))}catch(x){}
-let payTxt="",recov=false,rlink="",db,inv=[],up=true,tone="friendly",cur=null,pro=false,adm=false,ars=true,uid=null;
+let planExp=0,payTxt="",recov=false,rlink="",db,inv=[],up=true,tone="friendly",cur=null,pro=false,adm=false,ars=true,uid=null;
 function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",2600)}
 function today(){const d=new Date();return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5}
 const dueIn=i=>Math.round(Date.parse(i.due_date)/864e5-today());
@@ -258,14 +262,17 @@ function setMode(){
 }
 async function plan(){
  const r=await db.from("user_plans").select("plan,expires_at").maybeSingle();
- pro=!!(r.data&&r.data.plan==="pro"&&Date.parse(r.data.expires_at)>Date.now());
+ planExp=r.data&&r.data.plan==="pro"?Date.parse(r.data.expires_at)||0:0;
+ pro=!!(planExp&&planExp>Date.now());
  const u=(await db.auth.getUser()).data.user;
  adm=!!u&&u.email===ADMIN;uid=u&&u.id;
  if(pro&&AUTO){const x=await db.from("user_settings").select("auto_reminders").maybeSingle();ars=x.data?x.data.auto_reminders:true}
 }
 async function loadAdm(){
+ const st=await db.rpc("admin_stats");
+ if(st.data)$("#ast").innerHTML=`<div class="stat"><b>${st.data.users}</b><span>Users</span></div><div class="stat"><b>${st.data.pro}</b><span>Active Pro</span></div><div class="stat"><b>${st.data.pending}</b><span>Pending payments</span></div><div class="stat"><b>${st.data.expiring}</b><span>Pro ending in 7 days</span></div>`;
  const r=await db.rpc("admin_pending"),l=r.data||[];
- $("#al").innerHTML=l.length?l.map(p=>`<li class="row"><b>${esc(p.email)}</b><span class="sub">${esc(p.method)} · ${esc(p.reference||"no ID")}</span><div class="acts"><button class="pri" data-e="${esc(p.email)}">Activate 1 month</button></div></li>`).join(""):`<li class="empty">No pending payments.</li>`;
+ $("#al").innerHTML=l.length?l.map(p=>`<li class="row"><b>${esc(p.email)}</b><span class="sub">${esc(p.method)} · ${esc(p.reference||"no ID")}</span><div class="acts"><select data-m aria-label="Months" style="flex:0 0 110px"><option value="1">1 month</option><option value="3">3 months</option><option value="12">12 months</option></select><button class="pri" data-a="act" data-e="${esc(p.email)}">Activate</button><button data-a="rej" data-e="${esc(p.email)}" style="color:#B3261E">Reject</button></div></li>`).join(""):`<li class="empty">No pending payments.</li>`;
 }
 async function loadRef(){
  let c=null;try{c=localStorage.getItem("ndg_ref")}catch(x){}
@@ -286,8 +293,13 @@ async function load(){
 }
 function render(){
  const open=inv.filter(i=>i.status!=="paid"),n=new Date();
- $("#upg").classList.toggle("hide",pro);$("#plan").textContent=pro?"Pro":"Free plan";$("#usage").classList.toggle("hide",pro);
- $("#un").textContent=open.length+" / 3";$("#bf").style.width=Math.min(open.length/3,1)*100+"%";$("#bf").style.background=open.length>=3?"#B3261E":"#2F8F23";$("#add").classList.toggle("lim",!pro&&open.length>=3);$("#adm").classList.toggle("hide",!adm);$("#tb-adm").classList.toggle("hide",!adm);$("#arw").classList.toggle("hide",!(pro&&AUTO));$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
+ const dl=planExp?Math.ceil((planExp-Date.now())/864e5):null,dt=planExp?new Date(planExp).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}):"",soon=pro&&dl<=7;
+ let em="";
+ if(soon)em="Your Pro plan ends "+(dl<=0?"today":"in "+dl+" day"+(dl>1?"s":""))+" ("+dt+"). Tap to renew. Time left is kept when you renew early.";
+ else if(!pro&&planExp)em="Your Pro plan ended on "+dt+". You are on the Free plan (3 unpaid invoices)."+(open.length>3?" You have "+open.length+" unpaid invoices, so you cannot add new ones until you are under 3.":"")+" Tap to renew.";
+ $("#exp").textContent=em;$("#exp").classList.toggle("hide",!em);
+ $("#upg").classList.toggle("hide",pro&&!soon);$("#plan").textContent=pro?"Pro · "+new Date(planExp).toLocaleDateString(undefined,{day:"numeric",month:"short"}):"Free plan";$("#usage").classList.toggle("hide",pro);
+ $("#un").textContent=open.length+" / 3";$("#bf").style.width=Math.min(open.length/3,1)*100+"%";$("#bf").style.background=open.length>=3?"#B3261E":"#2F8F23";$("#add").classList.toggle("lim",!pro&&open.length>=3);$("#adm").classList.toggle("hide",!adm);$("#tb-adm").classList.toggle("hide",!adm);$("#delacc").classList.toggle("hide",adm);$("#arw").classList.toggle("hide",!(pro&&AUTO));$("#ar").textContent="Automatic reminders: "+(ars?"ON":"OFF");
  let pe=false;try{pe=localStorage.getItem("ndg_pend")==="1";if(pro&&pe)localStorage.removeItem("ndg_pend")}catch(x){}
  $("#pend").classList.toggle("hide",!(pe&&!pro));
  $("#tot").textContent=sum(open);
@@ -385,6 +397,19 @@ $("#add").onclick=async()=>{
  await load();toast(wasEdit?"Changes saved":"Invoice added");
 };
 $("#addcancel").onclick=endEdit;
+$("#delacc").onclick=async()=>{
+ if(!confirm("Delete your account and ALL your data? This cannot be undone."))return;
+ const w=prompt("Type DELETE to confirm");if((w||"").trim()!=="DELETE")return;
+ const{error}=await db.rpc("delete_my_account");
+ if(error){toast(error.message);return}
+ await db.auth.signOut();toast("Your account has been deleted");
+};
+$("#rs").onclick=async()=>{
+ const email=$("#em").value.trim();if(!email){$("#err").textContent="Enter your email first.";return}
+ $("#rs").disabled=true;const{error}=await db.auth.resend({type:"signup",email});
+ $("#err").textContent=error?error.message:"Confirmation email sent again. It can take a few minutes.";
+ setTimeout(()=>{$("#rs").disabled=false},60000);
+};
 $("#sw").onclick=()=>{up=!up;setMode()};
 $("#af").addEventListener("submit",async e=>{
  e.preventDefault();
@@ -393,8 +418,8 @@ $("#af").addEventListener("submit",async e=>{
  $("#go").disabled=true;$("#err").textContent="";
  const r=up?await db.auth.signUp({email,password}):await db.auth.signInWithPassword({email,password});
  $("#go").disabled=false;
- if(r.error)$("#err").textContent=r.error.message;
- else if(up&&!r.data.session)$("#err").textContent="Check your email to confirm your account, then sign in.";
+ if(r.error){$("#err").textContent=r.error.message;$("#rs").classList.toggle("hide",!/confirm/i.test(r.error.message))}
+ else if(up&&!r.data.session){$("#err").textContent="Check your email to confirm your account, then sign in. Look in your spam folder too.";$("#rs").classList.remove("hide")}
 });
 const P=window.PAYMENTS||{},PRICE=25;
 let pm=null;
@@ -434,12 +459,19 @@ $("#ar").onclick=async()=>{
  const r=await db.from("user_settings").upsert({user_id:uid,auto_reminders:ars});
  if(r.error){ars=!ars;toast(r.error.message);render()}
 };
+$("#exp").onclick=()=>{view("pay");renderPay();scrollTo(0,0)};
 $("#upg").onclick=()=>{view("pay");renderPay();scrollTo(0,0)};
 $("#bk").onclick=()=>{view("app");render()};
 document.addEventListener("click",e=>{if(e.target.id==="done"){view("app");load()}});
 $("#al").addEventListener("click",async e=>{
- const b=e.target.closest("button");if(!b)return;b.disabled=true;
- const r=await db.rpc("admin_activate",{p_email:b.dataset.e,p_months:1});
+ const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.a==="rej"){
+  if(!confirm("Reject the payment request from "+b.dataset.e+"?"))return;
+  b.disabled=true;const r=await db.rpc("admin_reject",{p_email:b.dataset.e});
+  toast(r.error?r.error.message:"Request rejected");loadAdm();return;
+ }
+ b.disabled=true;const m=parseInt(b.closest("li").querySelector("[data-m]").value,10)||1;
+ const r=await db.rpc("admin_activate",{p_email:b.dataset.e,p_months:m});
  toast(r.error?r.error.message:r.data);loadAdm();
 });
 $("#csv").onclick=()=>{
