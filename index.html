@@ -357,6 +357,7 @@ $("#mail").onclick=async()=>{
 $("#add").onclick=async()=>{
  const name=$("#f-name").value.trim(),email=$("#f-mail").value.trim().toLowerCase(),num=$("#f-num").value.trim(),amt=parseFloat($("#f-amt").value),due=$("#f-due").value,tel=$("#f-tel").value.trim(),er=$("#aerr");
  if(!name||!email||!(amt>0)||!due){er.textContent="Enter a client name, an email, an amount and a due date.";return}
+ if(!pro&&inv.filter(i=>i.status!=="paid").length>=3){er.textContent="Free plan limit reached: 3 unpaid invoices. Upgrade to Pro for unlimited invoices.";return}
  er.textContent="";$("#add").disabled=true;
  let{data:c,error}=await db.from("clients").select("id,name,phone").eq("email",email).maybeSingle();
  let cid=c?.id;
