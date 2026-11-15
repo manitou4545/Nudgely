@@ -134,7 +134,8 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
   <div class="hd"><h1>Your invoices</h1><span class="pill" id="plan"></span></div>
   <div class="usage hide" id="usage"><div class="top"><span>Unpaid invoices</span><b id="un"></b></div><div class="bar2"><i id="bf"></i></div></div>
   <ul id="list"></ul>
-  <h2>Add an invoice</h2>
+  </div>
+<div id="t-add" class="hide"><div class="hd"><h1 id="addtitle">Add an invoice</h1></div>
   <div class="add">
     <label>Client name<input id="f-name" autocomplete="off"></label>
     <label>Client email<input id="f-mail" type="email" autocomplete="off"></label>
@@ -197,7 +198,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
 </div>
 <div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><div class="stats" id="ast"></div><ul id="al"></ul></section>
 </div>
-<nav id="tabs"><button type="button" data-t="inv" aria-pressed="true"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></b>Invoices</button><button type="button" data-t="bal" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 20v-7M12 20V5M17 20v-10"/></svg></b>Summary</button><button type="button" data-t="acc" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></b>Account</button><button type="button" id="tb-adm" class="hide" data-t="adm" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></b>Admin</button></nav>
+<nav id="tabs"><button type="button" data-t="inv" aria-pressed="true"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></b>Invoices</button><button type="button" data-t="add" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></b>Add</button><button type="button" data-t="bal" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 20v-7M12 20V5M17 20v-10"/></svg></b>Summary</button><button type="button" data-t="acc" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></b>Account</button><button type="button" id="tb-adm" class="hide" data-t="adm" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></b>Admin</button></nav>
 </section>
 
 <section id="pay" class="hide">
@@ -230,7 +231,7 @@ const SB_KEY="sb_publishable_1IbzYcFo5D2-b9eNzgMHfA_-BmDx7tZ";
 const ADMIN="gerardnomo8@gmail.com",AUTO=false;
 const $=s=>document.querySelector(s);
 let editId=null;
-function endEdit(){editId=null;["#f-name","#f-mail","#f-tel","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");$("#add").textContent="Add invoice";$("#addcancel").classList.add("hide")}
+function endEdit(){editId=null;["#f-name","#f-mail","#f-tel","#f-num","#f-amt","#f-due"].forEach(s=>$(s).value="");$("#add").textContent="Add invoice";$("#addtitle").textContent="Add an invoice";$("#addcancel").classList.add("hide")}
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const days=n=>n+" day"+(n===1?"":"s");
 const money=(v,c)=>{try{return new Intl.NumberFormat("en-US",{style:"currency",currency:c||"USD"}).format(v)}catch(e){return v+" "+c}};
@@ -356,7 +357,7 @@ $("#list").addEventListener("click",async e=>{
   if(error)toast(error.message);else{if(editId===i.id)endEdit();await load();toast("Invoice deleted")}
  }else if(b.dataset.a==="edit"){
   editId=i.id;$("#f-name").value=i.clients?.name||"";$("#f-mail").value=i.clients?.email||"";$("#f-tel").value=i.clients?.phone||"";$("#f-num").value=i.number||"";$("#f-amt").value=i.amount;$("#f-cur").value=i.currency;$("#f-due").value=i.due_date;
-  $("#add").textContent="Save changes";$("#addcancel").classList.remove("hide");$("#aerr").textContent="";$("#f-name").scrollIntoView({behavior:"smooth",block:"center"});
+  $("#add").textContent="Save changes";$("#addtitle").textContent="Edit invoice";$("#addcancel").classList.remove("hide");$("#aerr").textContent="";tab("add");
  }else{cur=i;build();openSheet()}
 });
 document.querySelector(".seg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){tone=b.dataset.tone;build()}});
@@ -394,9 +395,9 @@ $("#add").onclick=async()=>{
  $("#add").disabled=false;
  if(error){er.textContent=error.message;return}
  const wasEdit=!!editId;endEdit();
- await load();toast(wasEdit?"Changes saved":"Invoice added");
+ await load();tab("inv");toast(wasEdit?"Changes saved":"Invoice added");
 };
-$("#addcancel").onclick=endEdit;
+$("#addcancel").onclick=()=>{endEdit();tab("inv")};
 $("#delacc").onclick=async()=>{
  if(!confirm("Delete your account and ALL your data? This cannot be undone."))return;
  const w=prompt("Type DELETE to confirm");if((w||"").trim()!=="DELETE")return;
@@ -519,7 +520,7 @@ $("#pn").onclick=async()=>{
  toast("Notifications on");pushState();
 };
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-function tab(n){["inv","bal","acc","adm"].forEach(k=>$("#t-"+k).classList.toggle("hide",k!==n));document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===n));scrollTo(0,0)}
+function tab(n){["inv","add","bal","acc","adm"].forEach(k=>$("#t-"+k).classList.toggle("hide",k!==n));document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===n));scrollTo(0,0)}
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)tab(b.dataset.t)});
 $("#out").onclick=()=>db.auth.signOut();
 if(!window.supabase){const f=$("#fatal");f.textContent="Could not load the app. Check your connection and reload.";f.classList.remove("hide")}
