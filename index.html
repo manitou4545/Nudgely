@@ -85,7 +85,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
 .wrap{padding-bottom:96px}
 #tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 #tabs button{flex:1;border:0;border-radius:0;background:none;font-size:12px;font-weight:600;color:var(--muted);display:grid;gap:2px;justify-items:center;padding:8px 0;min-height:58px}
-#tabs button.hide{display:none}#tabs button[aria-pressed="true"]{color:var(--green)}#tabs b{font-size:20px;line-height:1}
+#tabs button.hide{display:none}#tabs button[aria-pressed="true"]{color:var(--green)}#tabs b{display:block;line-height:0}#tabs svg{display:block}
 #shade{z-index:10}#sheet{z-index:11}#toast{z-index:12;bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 </style>
 </head>
@@ -192,7 +192,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
   </div>
 <div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><ul id="al"></ul></section>
 </div>
-<nav id="tabs"><button type="button" data-t="inv" aria-pressed="true"><b>🧾</b>Invoices</button><button type="button" data-t="bal" aria-pressed="false"><b>📊</b>Summary</button><button type="button" data-t="acc" aria-pressed="false"><b>👤</b>Account</button><button type="button" id="tb-adm" class="hide" data-t="adm" aria-pressed="false"><b>🛠</b>Admin</button></nav>
+<nav id="tabs"><button type="button" data-t="inv" aria-pressed="true"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></b>Invoices</button><button type="button" data-t="bal" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 20v-7M12 20V5M17 20v-10"/></svg></b>Summary</button><button type="button" data-t="acc" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></b>Account</button><button type="button" id="tb-adm" class="hide" data-t="adm" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></b>Admin</button></nav>
 </section>
 
 <section id="pay" class="hide">
