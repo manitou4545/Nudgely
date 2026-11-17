@@ -196,7 +196,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
   <div class="add"><p class="sub" style="font-size:15px;margin:0">Permanently deletes your account, your invoices and your clients. This cannot be undone.</p>
   <button type="button" id="delacc" style="color:#B3261E">Delete my account</button></div>
 </div>
-<div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><div class="stats" id="ast"></div><ul id="al"></ul><h2>Pro clients</h2><ul id="apro"></ul></section>
+<div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><div class="stats" id="ast"></div><div class="card"><b>Backup</b><span class="sub">Download all your data (invoices, clients, plans, payments). Do it once a week and keep the file on Google Drive.</span><button type="button" class="pri" id="bkp">Download backup</button></div><ul id="al"></ul><h2>Pro clients</h2><ul id="apro"></ul></section>
 </div>
 <nav id="tabs"><button type="button" data-t="inv" aria-pressed="true"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></b>Invoices</button><button type="button" data-t="add" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></b>Add</button><button type="button" data-t="bal" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 20v-7M12 20V5M17 20v-10"/></svg></b>Summary</button><button type="button" data-t="acc" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></b>Account</button><button type="button" id="tb-adm" class="hide" data-t="adm" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></b>Admin</button></nav>
 </section>
@@ -210,7 +210,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
   <p class="sub" style="margin-top:12px">After your payment, tap “I have paid”. Your account is activated within 24 hours.</p>
 </section>
 <p id="fatal" class="hide" role="alert"></p>
-<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:nudgely0@gmail.com">Contact</a> · v9</footer>
+<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:nudgely0@gmail.com">Contact</a> · v11</footer>
 </div>
 
 <div id="pr"></div>
@@ -272,10 +272,10 @@ async function plan(){
 async function loadAdm(){
  const st=await db.rpc("admin_stats");
  if(st.data)$("#ast").innerHTML=`<div class="stat"><b>${st.data.users}</b><span>Users</span></div><div class="stat"><b>${st.data.pro}</b><span>Active Pro</span></div><div class="stat"><b>${st.data.pending}</b><span>Pending payments</span></div><div class="stat"><b>${st.data.expiring}</b><span>Pro ending in 7 days</span></div>`;
- const pr=await db.rpc("admin_pro_list"),pl=pr.data||[];
- $("#apro").innerHTML=pr.error?`<li class="empty">${esc(pr.error.message)}</li>`:pl.length?pl.map(p=>{const d=Math.ceil((Date.parse(p.expires_at)-Date.now())/864e5),c=d<=0?"#B3261E":d<=7?"#C26A00":"#1F7A3E",t=d<=0?"Expired "+(-d)+" day"+(d===-1?"":"s")+" ago":d+" day"+(d===1?"":"s")+" left";return`<li class="row"><b>${esc(p.email)}</b><span class="sub">Ends ${new Date(p.expires_at).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})} · <b style="color:${c}">${t}</b></span></li>`}).join(""):`<li class="empty">No Pro clients yet.</li>`;
  const r=await db.rpc("admin_pending"),l=r.data||[];
  $("#al").innerHTML=l.length?l.map(p=>`<li class="row"><b>${esc(p.email)}</b><span class="sub">${esc(p.method)} · ${esc(p.reference||"no ID")}</span><div class="acts"><select data-m aria-label="Months" style="flex:0 0 110px"><option value="1">1 month</option><option value="3">3 months</option><option value="12">12 months</option></select><button class="pri" data-a="act" data-e="${esc(p.email)}">Activate</button><button data-a="rej" data-e="${esc(p.email)}" style="color:#B3261E">Reject</button></div></li>`).join(""):`<li class="empty">No pending payments.</li>`;
+ const pr=await db.rpc("admin_pro_list"),pl=pr.data||[];
+ $("#apro").innerHTML=pr.error?`<li class="empty">${esc(pr.error.message)}</li>`:pl.length?pl.map(p=>{const d=Math.ceil((Date.parse(p.expires_at)-Date.now())/864e5),c=d<=0?"#B3261E":d<=7?"#C26A00":"#1F7A3E",t=d<=0?"Expired "+(-d)+" day"+(d===-1?"":"s")+" ago":d+" day"+(d===1?"":"s")+" left";return`<li class="row"><b>${esc(p.email)}</b><span class="sub">Ends ${new Date(p.expires_at).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"})} · <b style="color:${c}">${t}</b></span></li>`}).join(""):`<li class="empty">No Pro clients yet.</li>`;
 }
 async function loadRef(){
  let c=null;try{c=localStorage.getItem("ndg_ref")}catch(x){}
@@ -524,6 +524,16 @@ $("#pn").onclick=async()=>{
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 function tab(n){["inv","add","bal","acc","adm"].forEach(k=>$("#t-"+k).classList.toggle("hide",k!==n));document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===n));scrollTo(0,0)}
 $("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)tab(b.dataset.t)});
+$("#bkp").onclick=async()=>{
+ const b=$("#bkp");b.disabled=true;
+ const r=await db.rpc("admin_backup");
+ b.disabled=false;
+ if(r.error){toast(r.error.message);return}
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(r.data,null,1)],{type:"application/json"}));
+ a.download="nudgely-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();
+ toast("Backup downloaded");
+};
 $("#out").onclick=()=>db.auth.signOut();
 if(!window.supabase){const f=$("#fatal");f.textContent="Could not load the app. Check your connection and reload.";f.classList.remove("hide")}
 else{
