@@ -1,8 +1,9 @@
 window.PAYMENTS = {
-  price: 12,
+  price: 25,
   usdt: [
     { label: "Binance", address: "TDXRvYTDg16dC7FujiruWvXYap4hBgWRdY" },
     { label: "Bitget", address: "" }
   ],
-  orange: "+237693426336"
+  orange: "",
+  payoneer: { email: "manitou4545@outlook.com" }
 };
