@@ -219,7 +219,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
   <div class="add"><p class="sub" style="font-size:15px;margin:0">Permanently deletes your account, your invoices and your clients. This cannot be undone.</p>
   <button type="button" id="delacc" style="color:#B3261E">Delete my account</button></div>
 </div>
-<div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><div class="stats" id="ast"></div><div class="card"><b>Backup</b><span class="sub">Download all your data (invoices, clients, plans, payments). Do it once a week and keep the file on Google Drive.</span><button type="button" class="pri" id="bkp">Download backup</button></div><ul id="al"></ul><h2 id="aerrt">Errors</h2><ul id="aerr"></ul><button type="button" id="aerrc" class="hide">Clear error log</button><h2>Payment history</h2><ul id="ahist"></ul><h2>Pro clients</h2><ul id="apro"></ul></section>
+<div id="t-adm" class="hide"><section id="adm" class="hide"><h2>Admin</h2><div class="stats" id="ast"></div><div class="card"><b>Backup</b><span class="sub">Download all your data (invoices, clients, plans, payments). Do it once a week and keep the file on Google Drive.</span><button type="button" class="pri" id="bkp">Download backup</button></div><ul id="al"></ul><h2 id="aerrt">Errors</h2><ul id="aelist"></ul><button type="button" id="aerrc" class="hide">Clear error log</button><h2>Payment history</h2><ul id="ahist"></ul><h2>Pro clients</h2><ul id="apro"></ul></section>
 </div>
 <nav id="tabs"><button type="button" data-t="inv" aria-pressed="true"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></b>Invoices</button><button type="button" data-t="add" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></b>Add</button><button type="button" data-t="bal" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 20v-7M12 20V5M17 20v-10"/></svg></b>Summary</button><button type="button" data-t="acc" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></b>Account</button><button type="button" id="tb-adm" class="hide" data-t="adm" aria-pressed="false"><b><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.9-8 9-4.8-1.1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></b>Admin</button></nav>
 </section>
@@ -233,7 +233,7 @@ textarea{font:inherit;color:var(--ink);background:var(--field);border:0;border-r
   <p class="sub" style="margin-top:12px">After your payment, tap “I have paid”. Your account is activated within 24 hours.</p>
 </section>
 <p id="fatal" class="hide" role="alert"></p>
-<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:nudgely0@gmail.com">Contact</a> · v11</footer>
+<footer class="ft"><a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a> · <a href="mailto:nudgely0@gmail.com">Contact</a> · v23</footer>
 </div>
 
 <div id="pr"></div>
@@ -307,7 +307,7 @@ async function loadAdm(){
  $("#al").innerHTML=l.length?l.map(p=>`<li class="row"><b>${esc(p.email)}</b><span class="sub">${esc(p.method)} · ${esc(p.reference||"no ID")}${p.created_at?" · "+new Date(p.created_at).toLocaleDateString(LC()):""}</span><div class="acts"><select data-m aria-label="Months" style="flex:0 0 110px"><option value="1">1 month</option><option value="3">3 months</option><option value="12">12 months</option></select><button class="pri" data-a="act" data-e="${esc(p.email)}">Activate</button><button data-a="rej" data-e="${esc(p.email)}" style="color:#B3261E">Reject</button></div></li>`).join(""):`<li class="empty">No pending payments.</li>`;
  const er=await db.rpc("admin_errors"),el=er.data||[];
  $("#aerrt").textContent="Errors"+(el.length?" ("+el.reduce((a,x)=>a+x.n,0)+")":"");$("#aerrc").classList.toggle("hide",!el.length);
- $("#aerr").innerHTML=er.error?`<li class="empty">${esc(er.error.message)}</li>`:el.length?el.map(x=>`<li class="row"><details><summary><b>${esc(x.message)}</b><span class="sub">×${x.n} · ${x.users} user${x.users===1?"":"s"} · ${esc(x.version||"")} · ${new Date(x.last_seen).toLocaleString()}</span></summary><pre style="white-space:pre-wrap;word-break:break-all;font-size:12px;margin:8px 0 0">${esc((x.page||"")+"\n"+(x.stack||"")+"\n"+(x.ua||""))}</pre></details></li>`).join(""):`<li class="empty">No errors recorded.</li>`;
+ $("#aelist").innerHTML=er.error?`<li class="empty">${esc(er.error.message)}</li>`:el.length?el.map(x=>`<li class="row"><details><summary><b>${esc(x.message)}</b><span class="sub">×${x.n} · ${x.users} user${x.users===1?"":"s"} · ${esc(x.version||"")} · ${new Date(x.last_seen).toLocaleString()}</span></summary><pre style="white-space:pre-wrap;word-break:break-all;font-size:12px;margin:8px 0 0">${esc((x.page||"")+"\n"+(x.stack||"")+"\n"+(x.ua||""))}</pre></details></li>`).join(""):`<li class="empty">No errors recorded.</li>`;
  const hr=await db.rpc("admin_history"),hl=hr.data||[];
  $("#ahist").innerHTML=hr.error?`<li class="empty">${esc(hr.error.message)}</li>`:hl.length?hl.map(p=>`<li class="row"><b>${esc(p.email)}</b><span class="sub">${esc(p.method)} · ${esc(p.reference||"no ID")} · ${new Date(p.decided_at||p.created_at).toLocaleDateString(LC())} · <b style="color:${p.status==="approved"?"#1F7A3E":"#B3261E"}">${p.status==="approved"?"Activated":"Rejected"}</b></span></li>`).join(""):`<li class="empty">No payments yet.</li>`;
  const pr=await db.rpc("admin_pro_list"),pl=pr.data||[];
@@ -513,7 +513,7 @@ $("#al").addEventListener("click",async e=>{
   b.disabled=true;const r=await db.rpc("admin_reject",{p_email:b.dataset.e});
   toast(r.error?r.error.message:"Request rejected");loadAdm();return;
  }
- b.disabled=true;const m=parseInt(b.closest("li").querySelector("[data-m]").value,10)||1;
+ const m=parseInt(b.closest("li").querySelector("[data-m]").value,10)||1;if(!confirm("Activate Pro for "+m+" month"+(m>1?"s":"")+" for "+b.dataset.e+"?"))return;b.disabled=true;
  const r=await db.rpc("admin_activate",{p_email:b.dataset.e,p_months:m});
  toast(r.error?r.error.message:r.data);loadAdm();
 });
@@ -543,7 +543,7 @@ $("#rf2").addEventListener("submit",async e=>{
  if(r.error){$("#rerr").textContent=r.error.message;return}
  recov=false;toast("Password updated");view("app");load();
 });
-const APPV="v21",errSeen=new Set();let errN=0;
+const APPV="v23",errSeen=new Set();let errN=0;
 function logErr(msg,stack){try{msg=String(msg||"").slice(0,300);if(!db||!uid||errN>=5||errSeen.has(msg)||/^Script error|ResizeObserver|Failed to fetch|NetworkError|Load failed/i.test(msg))return;errSeen.add(msg);errN++;db.from("error_logs").insert({message:msg,stack:String(stack||"").slice(0,1500),page:location.pathname+location.hash,ua:navigator.userAgent.slice(0,200),version:APPV,lang}).then(()=>{},()=>{})}catch(x){}}
 window.addEventListener("error",e=>logErr(e.message,e.error&&e.error.stack));
 window.addEventListener("unhandledrejection",e=>{const m=(e.reason&&e.reason.message)||String(e.reason);logErr(m,e.reason&&e.reason.stack);const pe=$("#perr");if(pe)pe.textContent="Error: "+m;toast("Error: "+m)});
